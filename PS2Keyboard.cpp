@@ -339,11 +339,12 @@ void IRAM_ATTR PS2Keyboard::interruptHandler()
 	}
 	bitcount++;
 	if (bitcount == 11){
-    if (incoming == 0x12)
+    if (incoming == 0x12 || incoming == 0x59)
       modifs |=SHIFT;
     if ( (teclaStatus == 1) || (incoming == 0xAA) || (incoming == 0xEE || (incoming == 0xFA)) ){
       switch(incoming){
         case 0x12:
+        case 0x59:
           modifs &= !SHIFT;
           break;
         case 0x58:
