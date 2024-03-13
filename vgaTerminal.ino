@@ -1,15 +1,12 @@
-/*
-  Libs used:
-            VGA.............: https://github.com/ppsilv/ESP32Lib (Forked from THE GREAT bitlunes)
-            CircularBuffer..: https://github.com/ppsilv/CircularBuffer 
+#include "Arduino.h"
+#include "ESP32Lib.h"
 
-*/
-#include <ESP32Lib.h>
 //#include <Ressources/Font8x8.h>
-#include <Ressources/CodePage437_8x8.h>
-#include <Ressources/Font8x8.h>
+#include "Ressources/CodePage437_8x8.h"
+#include "Ressources/Font8x8.h"
 #include <CircularBuffer.hpp>
-#include"PS2Keyboard.h"
+#include "PS2Keyboard.h"
+#include "Terminal.h"
 
 //pin configuration
 const int redPin = 22;
@@ -27,132 +24,77 @@ const int Blue_0  = 4;
 VGA3Bit vga;
 
 Font myfont = CodePage437_8x8;
-
 extern void loopUart();
 extern CircularBuffer<char, 255> buffer;
 extern void setupUart();
 extern void setupPs2Keyboard();
 extern void loopPs2Keyboard();
+extern int myprintf( char* str, ...);
+
 extern PS2Keyboard keyboard;
-void bitluni(int x, int y, int s)
-{
-	vga.fillCircle(x + 2 * s, y + 2 * s, 2 * s, vga.RGB(128, 0, 0));
-	vga.fillCircle(x + 22 * s, y + 2 * s, 2 * s, vga.RGB(128, 0, 0));
-	vga.fillCircle(x + 2 * s, y + 22 * s, 2 * s, vga.RGB(128, 0, 0));
-	vga.fillCircle(x + 22 * s, y + 22 * s, 2 * s, vga.RGB(128, 0, 0));
-	vga.fillRect(x, y + 2 * s, 24 * s, 20 * s, vga.RGB(128, 0, 0));
-	vga.fillRect(x + 2 * s, y, 20 * s, 24 * s, vga.RGB(128, 0, 0));
-	vga.fillCircle(x + 7 * s, y + 4 * s, 2 * s, vga.RGB(255, 255, 255));
-	vga.fillCircle(x + 15 * s, y + 6 * s, 2 * s, vga.RGB(255, 255, 255));
-	vga.fillCircle(x + 11 * s, y + 16 * s, 6 * s, vga.RGB(255, 255, 255));
-	vga.fillCircle(x + 13 * s, y + 16 * s, 6 * s, vga.RGB(255, 255, 255));
-	vga.fillCircle(x + 11 * s, y + 16 * s, 2 * s, vga.RGB(128, 0, 0));
-	vga.fillCircle(x + 13 * s, y + 16 * s, 2 * s, vga.RGB(128, 0, 0));
-	vga.fillRect(x + 11 * s, y + 14 * s, 2 * s, 4 * s, vga.RGB(128, 0, 0));
-	vga.fillRect(x + 9 * s, y + 14 * s, 2 * s, 2 * s, vga.RGB(128, 0, 0));
-	vga.fillRect(x + 5 * s, y + 4 * s, 4 * s, 12 * s, vga.RGB(255, 255, 255));
-	vga.fillRect(x + 9 * s, y + 10 * s, 4 * s, s, vga.RGB(255, 255, 255));
-}
-/******************************************/
-// Configurações
-bool  cursorMode  = true;     //true curson on false cursor off
-byte  screenMode  = 5;        //5 = 640x350
 
-void printVga(char i){
-  vga.print(i);
-}
+extern void setupCursor();
+extern bool toggle0;
+extern bool toggled;
+bool cursorStatus = true;
 
-void setup2()
-{
-	//initializing the graphics mode
-//	vga.init(vga.MODE800x600, redPin, greenPin, bluePin, hsyncPin, vsyncPin);
-	vga.init(vga.MODE640x350, redPin, greenPin, bluePin, hsyncPin, vsyncPin);
+const unsigned int alarme=5250;
+unsigned long future= millis()+alarme;
+
+void setup() {
+  Serial.begin(115200);
+  vga.init(vga.MODE640x350, redPin, greenPin, bluePin, hsyncPin, vsyncPin);
 	//setting the font
 	//vga.setFont(Font6x8);
   vga.setFont(CodePage437_8x8);
 
 	//clearing with white background
-	vga.clear(vga.RGB(0xffffff));
+	vga.clear(vga.RGB(0, 0, 0));
 	//text position
-	vga.setCursor(10, 10);
+	vga.setCursor(0, 0);
 	//black text color no background color
 	vga.setTextColor(vga.RGB(0, 255, 0));
-	//show the remaining memory
-	vga.print("free memory: ");
-	vga.print((int)heap_caps_get_free_size(MALLOC_CAP_DEFAULT));
-	//draw the logo
-	bitluni(150, 60, 20);
-  while(1) delay(10000);
-}
-uint8_t linha;
-uint8_t coluna;
-
-void setup()
-{
-  setupUart();
-  pinMode(Red_0, INPUT);
-  pinMode(Green_0, INPUT);
-  pinMode(Blue_0, INPUT);
-
-	//initializing vga at the specified pins
-	//vga.init(vga.MODE320x240, redPin, greenPin, bluePin, hsyncPin, vsyncPin);
-  //vga.init(vga.MODE500x480, redPin, greenPin, bluePin, hsyncPin, vsyncPin);
-	vga.init(vga.MODE640x350, redPin, greenPin, bluePin, hsyncPin, vsyncPin);
-	//selecting the font
-	//vga.setFont(CodePage437_8x8);
-  vga.setFont(myfont);
-	//black text color no background color
-	vga.setTextColor(vga.RGB(0, 255, 0));
-	//displaying the text
+	//show the the parameters
 	vga.println("***** Open Software - Copyright (C) 2024 *****\n");
 	vga.println("      Terminal serial\n");
   vga.println("      Screen mode: 640x350");
   vga.println("      Baudrate...: 9600");
   vga.println("      Keyboard...: US-Keyboard");
+  vga.println("      Cursor.....: ON");
 	vga.print  ("      Free memory: ");	vga.println((int)heap_caps_get_free_size(MALLOC_CAP_DEFAULT));
-  vga.println("");
+  vga.println("**********************************************\n");  
 
-	bitluni(540, 1, 4);
-
-  vga.println("Initializing keyboard...");
-  vga.println("");
   setupPs2Keyboard();
-  vga.println(myfont.getFontWidth());
-  
+  setupCursor();
+
+  delay(1000);
+
+  //vga.clear();
+
 }
+extern void restartTimer0();
 
-void loop()
-{
-  for(int j=0; j<8; j++){
-    for(int i=0; i <9;i++){
-      vga.print(' ');
-    }
-    vga.print(j);
-  }
-  vga.print("\n");
-  for(int j=0; j<8; j++){
-    for(int i=0; i <10;i++){
-      vga.print(i);
-    }
-  }
-
+void loop(){
+  Terminal terminal;
   while(1){
     //loopUart();
     char ch = keyboard.GetCharcode();
-
-    if (ch != 0){
-      //Serial.printf("[%02X]\n",ch);
-      //Serial.printf("*%c*",ch);
-      if( ch == '\n' ){
-        vga.print("\n");
+    if((toggle0 == toggled) && cursorStatus ){
+      if( toggle0 ){
+        vga.printCursor('I');
       }else{
-        if(ch == 'A'){
-          vga.setCursor(10, 10);
-        }
-        vga.print(ch);
+        vga.printCursor('C');
       }
-      vga.scroll(1,5);
+      toggled = !toggle0;
+      restartTimer0 ();
+      if ( millis() > future ){
+        future= millis()+alarme;
+      }
+    }
+    if (ch != 0){
+      terminal.print(ch);
     }
     keyboard.handleLeds();
   }
 }
+
