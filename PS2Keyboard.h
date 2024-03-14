@@ -1,3 +1,6 @@
+#ifndef __PS2KEYBOARD_H__
+#define __PS2KEYBOARD_H__
+
 #include <cstdint>
 
 #define SHIFT 1
@@ -44,3 +47,4 @@ private:
         static void kbdInterrupt7();  
 	byte GetParity(byte b);
 };
+#endif

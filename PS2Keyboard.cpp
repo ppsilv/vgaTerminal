@@ -1,11 +1,13 @@
 #include <Arduino.h>
 #include"PS2Keyboard.h"
 
-
 #define TransistorIRQPin  26
 #define TransistorDataPin 27
 #define DataPin 32
 #define IRQPin 33
+
+
+extern void hnd(void);
 
 PS2Keyboard* PS2Keyboard::keyboard0Ptr;
 PS2Keyboard* PS2Keyboard::keyboard1Ptr;
@@ -268,7 +270,6 @@ void PS2Keyboard::handleLeds()
     SetKeyboardLights();
   }
 }
-extern void hnd(void);
 
 //void KeyboardISR() //FALLING EDGE
 //void ICACHE_RAM_ATTR PS2Keyboard::interruptHandler() 
@@ -380,6 +381,7 @@ void IRAM_ATTR PS2Keyboard::interruptHandler()
 PS2Keyboard::PS2Keyboard()
 {
 }
+
 void PS2Keyboard::begin()
 {
 	pinMode(IRQPin, INPUT_PULLUP);
