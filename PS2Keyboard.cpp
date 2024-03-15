@@ -82,6 +82,7 @@ bool tab = false;
 
 volatile uint8_t state=0;
 volatile bool capsChanged=false;
+volatile bool numChanged=false;
 
 #pragma GCC push_options
 #pragma GCC optimize ("O2")
@@ -158,11 +159,16 @@ void PS2Keyboard::verifyStatus()
         capsChanged = false;  
         SetKeyboardLights();
     }
+    if( numChanged == true   ){
+        numChanged = false;  
+        SetKeyboardLights();
+    } 
 }
 
 void PS2Keyboard::setNumLock()
 {
     state |= NUMLOCK;
+    SetKeyboardLights();
 }
 
 bool PS2Keyboard::SetKeyboardLights() //byte NumLock, byte CapsLock, byte ScrollLock)
@@ -442,6 +448,7 @@ char PS2Keyboard::GetIso8859Code(void)
 				  state &= ~NUMLOCK;
         else  
           state |= NUMLOCK;
+        numChanged = true;  
 				continue;
 			} else if (s == 0x7E) {
         if ( state & SCROLL )
