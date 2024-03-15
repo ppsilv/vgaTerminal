@@ -28,14 +28,14 @@ extern VGA3Bit vga;
 
 // These define's must be placed at the beginning before #include "ESP32_New_TimerInterrupt.h"
 // _TIMERINTERRUPT_LOGLEVEL_ from 0 to 4
-#define _TIMERINTERRUPT_LOGLEVEL_     4
+#define _TIMERINTERRUPT_LOGLEVEL_     0
 
 // To be included only in main(), .ino with setup() to avoid `Multiple Definitions` Linker Error
 #include "ESP32TimerInterrupt.h"
 
 // Init ESP32 timer 0 and 1
 ESP32Timer ITimer0(0);
-ESP32Timer ITimer1(1);
+//ESP32Timer ITimer1(1);
 bool toggle0 = false;
 bool toggled = true;
 
@@ -44,9 +44,7 @@ bool toggled = true;
 // Only OK in core v1.0.6-
 bool IRAM_ATTR TimerHandler0(void * timerNo)
 {
-
 	toggle0 = !toggle0;
-
 	return true;
 }
 
@@ -54,37 +52,36 @@ void restartTimer0(){
   ITimer0.restartTimer();
 }
 
-bool IRAM_ATTR TimerHandler1(void * timerNo)
-{
-	static bool toggle1 = false;
-
-	//timer interrupt toggles outputPin
-	//digitalWrite(PIN_D3, toggle1);
-	toggle1 = !toggle1;
-
-	return true;
-}
+//bool IRAM_ATTR TimerHandler1(void * timerNo)
+//{
+//	static bool toggle1 = false;
+//
+//	//timer interrupt toggles outputPin
+//	//digitalWrite(PIN_D3, toggle1);
+//	toggle1 = !toggle1;
+//
+//	return true;
+//}
 
 #define TIMER0_INTERVAL_MS        150
 #define TIMER0_DURATION_MS        5000
 
-#define TIMER1_INTERVAL_MS        3000
-#define TIMER1_DURATION_MS        15000
+//#define TIMER1_INTERVAL_MS        3000
+//#define TIMER1_DURATION_MS        15000
 
 void setupCursor()
 {
-  delay(500);
-
-	Serial.print(F("\nStarting TimerInterruptTest on "));
-	Serial.println(ARDUINO_BOARD);
-	Serial.println(ESP32_TIMER_INTERRUPT_VERSION);
+	//Serial.print(F("\nStarting TimerInterruptTest on "));
+	//Serial.println(ARDUINO_BOARD);
+	//Serial.println(ESP32_TIMER_INTERRUPT_VERSION);
 
 	// Interval in microsecs
-	if (ITimer0.attachInterruptInterval(TIMER0_INTERVAL_MS * 1000, TimerHandler0))
-	{
-		Serial.print(F("Starting  ITimer0 OK, millis() = "));
-		Serial.println(millis());
-	}
-	else
-		Serial.println(F("Can't set ITimer0. Select another freq. or timer"));
+	if (!ITimer0.attachInterruptInterval(TIMER0_INTERVAL_MS * 1000, TimerHandler0)){
+    Serial.println(F("Can't set ITimer0. Select another freq. or timer"));
+  }
+  //else{  
+	//	Serial.print(F("Starting  ITimer0 OK, millis() = "));
+	//	Serial.println(millis());
+	//}
+		
 }

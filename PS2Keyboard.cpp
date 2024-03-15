@@ -1,10 +1,23 @@
 #include <Arduino.h>
-#include"PS2Keyboard.h"
+#include "PS2Keyboard.h"
+
+
+
+const PS2Keymap_t *keymap=NULL;
 
 #define TransistorIRQPin  26
 #define TransistorDataPin 27
-#define DataPin 32
-#define IRQPin 33
+#define DataPin     32
+#define IRQPin      33
+//Oito estados para a varialvel uint8_t state
+#define BREAK     0x01
+#define MODIFIER  0x02
+#define SHIFT_L   0x04
+#define SHIFT_R   0x08
+#define ALTGR     0x10
+#define SCROLL    0x20
+#define NUMLOCK   0x40
+#define CAPS      0x80
 
 
 extern void hnd(void);
@@ -55,7 +68,7 @@ const char chrsSH1[]={
 #define BUFFER_SIZE 128
 static volatile uint8_t buffer[BUFFER_SIZE];
 static volatile uint8_t head, tail;
-static volatile uint8_t teclaStatus = 0;
+
 
 static volatile uint8_t SendByteState;
 static volatile byte SendBits[10];
@@ -63,18 +76,15 @@ static volatile uint8_t disableisr;
 static volatile uint8_t fulldisableisr;
 static volatile uint16_t waitcounter;
 
-bool scrollk = false;
-bool future_scrollk = true;
-bool cpslk = false;
-bool future_cpslk = true;
-bool numlk = false;
-bool future_numlk = true;
-volatile uint16_t shift=0;
-volatile uint16_t modifs=0;
-volatile uint8_t  ledflags=0;
+bool bs = false;
+bool tab = false;
 
-//#pragma GCC push_options
-//#pragma GCC optimize ("O2")
+
+volatile uint8_t state=0;
+volatile bool capsChanged=false;
+
+#pragma GCC push_options
+#pragma GCC optimize ("O2")
 
 int PS2Keyboard::GetBufferSize()
 {
@@ -111,12 +121,10 @@ void PS2Keyboard::SendByte(byte b)
 	disableisr = 1;
 	fulldisableisr = 0;
 
-	while (disableisr != 0);
+	while (disableisr != 0); //Aguarda a interrupção transmitir
 
 	delay(10);
 }
-
-
 
 bool PS2Keyboard::SendByteWithConfirm(byte b, byte ACK, byte Tries, unsigned short Wait)
 {
@@ -144,32 +152,24 @@ bool PS2Keyboard::SendByteWithConfirm(byte b, byte ACK, byte Tries, unsigned sho
 	return(false);
 }
 
+void PS2Keyboard::verifyStatus()
+{
+    if( capsChanged == true   ){
+        capsChanged = false;  
+        SetKeyboardLights();
+    }
+}
+
 void PS2Keyboard::setNumLock()
 {
-  numlk = !numlk;
-  if( numlk ){
-    ledflags |= NUM_LOCK;
-  }else{
-    ledflags &= !NUM_LOCK;
-  }
-
+    state |= NUMLOCK;
 }
 
 bool PS2Keyboard::SetKeyboardLights() //byte NumLock, byte CapsLock, byte ScrollLock)
 {
-	byte b = ledflags;
-  /*
-	if (ledflags & CAPS_LOCK)
-		b |= 0x4;
-	if (ledflags & NUM_LOCK)
-		b |= 0x2;
-	if (ledflags & SCROLL_LOCK)
-		b |= 0x1;
-  */
-  Serial.print(" ");
-  Serial.print(b, 16);
-  Serial.print(" ");
-  
+  //11100000
+	byte b = (state >> 5);
+ 
 	if (SendByteWithConfirm(0xED, 0xFA, 1, 500) == false) //Change Lights
 		return(false);
 
@@ -195,7 +195,7 @@ bool PS2Keyboard::WaitForKeyboard()
 
 	return(true);
 }
-//#pragma GCC pop_options
+#pragma GCC pop_options
 
 byte PS2Keyboard::GetScancode()
 {
@@ -210,7 +210,6 @@ byte PS2Keyboard::GetScancode()
 	tail = i;
 	return (c);
 }
-
 byte PS2Keyboard::GetCharcode()
 {
 	uint8_t c, i;
@@ -222,55 +221,279 @@ byte PS2Keyboard::GetCharcode()
 	if (i >= BUFFER_SIZE) i = 0;
 	c = buffer[i];
 	tail = i;
+  return(chrsNS[c]);
+}
+//void KeyboardISR() //FALLING EDGE
+//void ICACHE_RAM_ATTR PS2Keyboard::interruptHandler() 
+void IRAM_ATTR PS2Keyboard::interruptHandler(){
+	static uint8_t bitcount = 0;
+	static uint8_t incoming = 0;
+	static uint32_t prev_ms = 0;
+	uint32_t now_ms;
+	uint8_t n, val;
 
-  if (cpslk && (modifs&SHIFT) && (chrsNS[c] < 127) ){
-    //Serial.println(" caps modifs ");
-    return(chrsSH1[c]);
-  }else if(modifs&SHIFT) {
-    //Serial.print(" modifs ");
-    return( chrsSH[c]);
-  }else if (cpslk && chrsNS[c] < 127){
-    //Serial.println(" caps ");
-    return(toUpperCase(chrsNS[c]));
-  }else {
-    return(chrsNS[c]);
-  }
+	if (fulldisableisr != 0)
+		return;
+	if (disableisr != 0){
+		SendByteState++;
+		switch (SendByteState){
+		case 0:
+		case 1:
+		case 2:
+		case 3:
+		case 4:
+		case 5:
+		case 6:
+		case 7:
+		case 8:
+		case 9:
+			digitalWrite(TransistorDataPin, SendBits[SendByteState]);
+			break;                              
+		case 10:
+			digitalWrite(TransistorDataPin, 0);
+			break;
+		case 11:
+			waitcounter = 0;
+			while (digitalRead(DataPin) != 0){
+				waitcounter++;                             
+				if (waitcounter > 32767){
+					disableisr = 0;
+					return;                             
+				}
+			};
+			waitcounter = 0;
+			while (digitalRead(DataPin) != 1){
+				waitcounter++;
+				if (waitcounter > 32767){
+					disableisr = 0;
+					return;
+				}
+			};
+			disableisr = 0;
+			break;
+		}
+		return;
+	}
 
-	return (c);
+	val = digitalRead(DataPin);
+	now_ms = millis();
+	if ((now_ms - prev_ms) > 250){
+		bitcount = 0;
+		incoming = 0;
+	}
+	prev_ms = now_ms;
+	n = bitcount - 1;
+	if (n <= 7){
+		incoming |= (val << n);
+	}
+	bitcount++;
+	if (bitcount == 11){
+		uint8_t i = head + 1;
+		if (i >= BUFFER_SIZE) i = 0;
+		if (i != tail) {
+			buffer[i] = incoming;
+			head = i;
+		}
+    bitcount = 0;
+		incoming = 0;
+	}
 }
 
-void PS2Keyboard::handleLeds()
-{   
-  if ( scrollk == future_scrollk ){
-    if ( future_scrollk )
-      ledflags |= SCROLL_LOCK;
-    else  
-      ledflags &= ~SCROLL_LOCK;
-
-    future_scrollk = !future_scrollk;
-    SetKeyboardLights();
-  }
-  if ( cpslk == future_cpslk ){
-    char buf[128];
-    if ( future_cpslk )
-      ledflags |= CAPS_LOCK;
-    else  
-      ledflags &= ~CAPS_LOCK;
-
-    future_cpslk = !future_cpslk;
-    SetKeyboardLights();
-  }
-  if ( numlk == future_numlk ){
-    if ( future_numlk )
-      ledflags |= NUM_LOCK;
-    else  
-      ledflags &= ~NUM_LOCK;
-
-    future_numlk = !future_numlk;
-    SetKeyboardLights();
-  }
+PS2Keyboard::PS2Keyboard()
+{
 }
 
+void PS2Keyboard::begin()
+{
+	pinMode(IRQPin, INPUT_PULLUP);
+	pinMode(DataPin, INPUT_PULLUP);
+	pinMode(TransistorDataPin, OUTPUT);
+	pinMode(TransistorIRQPin, OUTPUT);
+
+	digitalWrite(TransistorDataPin, 0);
+	digitalWrite(TransistorIRQPin, 0);
+
+	disableisr = 0;
+	head = 0;
+	tail = 0;
+	fulldisableisr = 0;
+
+  keymap = &PS2Keymap_US;
+ 
+    if (keyboard0Ptr==nullptr) {
+        //Serial.println("keyboard0Ptr");
+        keyboard0Ptr = this;
+        attachInterrupt(digitalPinToInterrupt(IRQPin), kbdInterrupt0, FALLING);
+    }
+    else if (keyboard1Ptr==nullptr) {
+        //Serial.println("keyboard1Ptr");
+        keyboard1Ptr = this;
+        attachInterrupt(digitalPinToInterrupt(IRQPin), kbdInterrupt1, FALLING);
+    }
+    else if (keyboard2Ptr==nullptr) {
+        //Serial.println("keyboard2Ptr");
+        keyboard2Ptr = this;
+        attachInterrupt(digitalPinToInterrupt(IRQPin), kbdInterrupt2, FALLING);
+    }
+    else if (keyboard3Ptr==nullptr) {
+        //Serial.println("keyboard3Ptr");
+        keyboard3Ptr = this;
+        attachInterrupt(digitalPinToInterrupt(IRQPin), kbdInterrupt3, FALLING);
+    }
+    else if (keyboard4Ptr==nullptr) {
+        //Serial.println("keyboard4Ptr");
+        keyboard4Ptr = this;
+        attachInterrupt(digitalPinToInterrupt(IRQPin), kbdInterrupt4, FALLING);
+    }
+    else if (keyboard5Ptr==nullptr) {
+        //Serial.println("keyboard5Ptr");
+        keyboard5Ptr = this;
+        attachInterrupt(digitalPinToInterrupt(IRQPin), kbdInterrupt5, FALLING);
+    }
+    else if (keyboard6Ptr==nullptr) {
+        //Serial.println("keyboard6Ptr");
+        keyboard6Ptr = this;
+        attachInterrupt(digitalPinToInterrupt(IRQPin), kbdInterrupt6, FALLING);
+    }
+    else if (keyboard7Ptr==nullptr) {
+        //Serial.println("keyboard7Ptr");
+        keyboard7Ptr = this;
+        attachInterrupt(digitalPinToInterrupt(IRQPin), kbdInterrupt7, FALLING);
+    }
+  
+}
+
+void ICACHE_RAM_ATTR PS2Keyboard::kbdInterrupt0() {
+    keyboard0Ptr->interruptHandler();
+}
+void ICACHE_RAM_ATTR PS2Keyboard::kbdInterrupt1() {
+    keyboard1Ptr->interruptHandler();
+}
+void ICACHE_RAM_ATTR PS2Keyboard::kbdInterrupt2() {
+    keyboard2Ptr->interruptHandler();
+}
+void ICACHE_RAM_ATTR PS2Keyboard::kbdInterrupt3() {
+    keyboard3Ptr->interruptHandler();
+}
+void ICACHE_RAM_ATTR PS2Keyboard::kbdInterrupt4() {
+   keyboard4Ptr->interruptHandler();
+}
+void ICACHE_RAM_ATTR PS2Keyboard::kbdInterrupt5() {
+    keyboard5Ptr->interruptHandler();
+}
+void ICACHE_RAM_ATTR PS2Keyboard::kbdInterrupt6() {
+    keyboard6Ptr->interruptHandler();
+}
+void ICACHE_RAM_ATTR PS2Keyboard::kbdInterrupt7() {
+    keyboard7Ptr->interruptHandler();
+}
+
+PS2Keyboard::~PS2Keyboard(){
+  detachInterrupt(IRQPin);
+}
+
+char PS2Keyboard::GetIso8859Code(void)
+{
+	uint8_t s;
+	char c;
+
+	while (1) {
+		s = GetScancode();
+		if (!s) return 0;
+		if (s == 0xF0) {
+			state |= BREAK;
+		} else if (s == 0xE0) {
+			state |= MODIFIER;
+		} else {
+			if (state & BREAK) {
+				if (s == 0x12) {
+					state &= ~SHIFT_L;
+				} else if (s == 0x58) {
+					//state &= ~CAPS;
+				} else if (s == 0x59) {
+					state &= ~SHIFT_R;
+				} else if (s == 0x77) {
+					//state &= ~NUMLOCK;
+				} else if (s == 0x7E) {
+					//state &= ~SCROLL;
+				} else if (s == 0x11 && (state & MODIFIER)) {
+					state &= ~ALTGR;
+				}
+				// CTRL, ALT & WIN keys could be added
+				// but is that really worth the overhead?
+				state &= ~(BREAK | MODIFIER);
+				continue;
+			}
+			if (s == 0x12) {
+				state |= SHIFT_L;
+				continue;
+			} else if (s == 0x58) {
+        if ( state & CAPS )
+				  state &= ~CAPS;
+        else  
+          state |= CAPS;
+        capsChanged = true;  
+				continue;
+			} else if (s == 0x59) {
+				state |= SHIFT_R;
+				continue;
+			} else if (s == 0x77) {
+        if ( state & NUMLOCK )
+				  state &= ~NUMLOCK;
+        else  
+          state |= NUMLOCK;
+				continue;
+			} else if (s == 0x7E) {
+        if ( state & SCROLL )
+				  state &= ~SCROLL;
+        else  
+          state |= SCROLL;
+				continue;
+			} else if (s == 0x11 && (state & MODIFIER)) {
+				state |= ALTGR;
+			}
+			c = 0;
+			if (state & MODIFIER) {
+				switch (s) {
+				  case 0x70: c = PS2_INSERT;      break;
+				  case 0x6C: c = PS2_HOME;        break;
+				  case 0x7D: c = PS2_PAGEUP;      break;
+				  case 0x71: c = PS2_DELETE;      break;
+				  case 0x69: c = PS2_END;         break;
+				  case 0x7A: c = PS2_PAGEDOWN;    break;
+				  case 0x75: c = PS2_UPARROW;     break;
+				  case 0x6B: c = PS2_LEFTARROW;   break;
+				  case 0x72: c = PS2_DOWNARROW;   break;
+				  case 0x74: c = PS2_RIGHTARROW;  break;
+				  case 0x4A: c = '/';             break;
+				  case 0x5A: c = PS2_ENTER;       break;
+				  default: break;
+				}
+			} 
+      else if ((state & ALTGR) && keymap->uses_altgr) {
+				if (s < PS2_KEYMAP_SIZE)
+					c = keymap->altgr[s];
+			} else if ( (state & CAPS) && (state & (SHIFT_L | SHIFT_R) )) {
+				if (s < PS2_KEYMAP_SIZE)
+					c = keymap->capsshift[s];
+			} else if (state & (SHIFT_L | SHIFT_R)) {
+				if (s < PS2_KEYMAP_SIZE)
+					c = keymap->shift[s];
+			} else if (state & CAPS) {
+				if (s < PS2_KEYMAP_SIZE)
+					c = toUpperCase(keymap->noshift[s]);
+			} else {
+				if (s < PS2_KEYMAP_SIZE)
+					c = keymap->noshift[s];
+			}
+			state &= ~(BREAK | MODIFIER);
+			if (c) return c;
+		}
+	}
+}
+
+//backup da interrupção
+/*
 //void KeyboardISR() //FALLING EDGE
 //void ICACHE_RAM_ATTR PS2Keyboard::interruptHandler() 
 void IRAM_ATTR PS2Keyboard::interruptHandler() 
@@ -329,7 +552,7 @@ void IRAM_ATTR PS2Keyboard::interruptHandler()
 
 	val = digitalRead(DataPin);
 	now_ms = millis();
-	if (now_ms - prev_ms > 250){
+	if (now_ms - prev_ms > 500){
 		bitcount = 0;
 		incoming = 0;
 	}
@@ -378,101 +601,5 @@ void IRAM_ATTR PS2Keyboard::interruptHandler()
 	}
 }
 
-PS2Keyboard::PS2Keyboard()
-{
-}
 
-void PS2Keyboard::begin()
-{
-	pinMode(IRQPin, INPUT_PULLUP);
-	pinMode(DataPin, INPUT_PULLUP);
-	pinMode(TransistorDataPin, OUTPUT);
-	pinMode(TransistorIRQPin, OUTPUT);
-
-	digitalWrite(TransistorDataPin, 0);
-	digitalWrite(TransistorIRQPin, 0);
-
-	disableisr = 0;
-	head = 0;
-	tail = 0;
-	fulldisableisr = 0;
-  ledflags = 0;
-  scrollk = false;
-  future_scrollk = true;
-  cpslk = false;
-  future_cpslk = true;
-  numlk = false;
-  future_numlk = true;
-	//attachInterrupt(digitalPinToInterrupt(IRQPin), KeyboardISR, FALLING);
- 
-    if (keyboard0Ptr==nullptr) {
-        Serial.println("keyboard0Ptr");
-        keyboard0Ptr = this;
-        attachInterrupt(digitalPinToInterrupt(IRQPin), kbdInterrupt0, FALLING);
-    }
-    else if (keyboard1Ptr==nullptr) {
-        Serial.println("keyboard1Ptr");
-        keyboard1Ptr = this;
-        attachInterrupt(digitalPinToInterrupt(IRQPin), kbdInterrupt1, FALLING);
-    }
-    else if (keyboard2Ptr==nullptr) {
-        Serial.println("keyboard2Ptr");
-        keyboard2Ptr = this;
-        attachInterrupt(digitalPinToInterrupt(IRQPin), kbdInterrupt2, FALLING);
-    }
-    else if (keyboard3Ptr==nullptr) {
-        Serial.println("keyboard3Ptr");
-        keyboard3Ptr = this;
-        attachInterrupt(digitalPinToInterrupt(IRQPin), kbdInterrupt3, FALLING);
-    }
-    else if (keyboard4Ptr==nullptr) {
-        Serial.println("keyboard4Ptr");
-        keyboard4Ptr = this;
-        attachInterrupt(digitalPinToInterrupt(IRQPin), kbdInterrupt4, FALLING);
-    }
-    else if (keyboard5Ptr==nullptr) {
-        Serial.println("keyboard5Ptr");
-        keyboard5Ptr = this;
-        attachInterrupt(digitalPinToInterrupt(IRQPin), kbdInterrupt5, FALLING);
-    }
-    else if (keyboard6Ptr==nullptr) {
-        Serial.println("keyboard6Ptr");
-        keyboard6Ptr = this;
-        attachInterrupt(digitalPinToInterrupt(IRQPin), kbdInterrupt6, FALLING);
-    }
-    else if (keyboard7Ptr==nullptr) {
-        Serial.println("keyboard7Ptr");
-        keyboard7Ptr = this;
-        attachInterrupt(digitalPinToInterrupt(IRQPin), kbdInterrupt7, FALLING);
-    }
-  
-}
-
-void ICACHE_RAM_ATTR PS2Keyboard::kbdInterrupt0() {
-    keyboard0Ptr->interruptHandler();
-}
-void ICACHE_RAM_ATTR PS2Keyboard::kbdInterrupt1() {
-    keyboard1Ptr->interruptHandler();
-}
-void ICACHE_RAM_ATTR PS2Keyboard::kbdInterrupt2() {
-    keyboard2Ptr->interruptHandler();
-}
-void ICACHE_RAM_ATTR PS2Keyboard::kbdInterrupt3() {
-    keyboard3Ptr->interruptHandler();
-}
-void ICACHE_RAM_ATTR PS2Keyboard::kbdInterrupt4() {
-   keyboard4Ptr->interruptHandler();
-}
-void ICACHE_RAM_ATTR PS2Keyboard::kbdInterrupt5() {
-    keyboard5Ptr->interruptHandler();
-}
-void ICACHE_RAM_ATTR PS2Keyboard::kbdInterrupt6() {
-    keyboard6Ptr->interruptHandler();
-}
-void ICACHE_RAM_ATTR PS2Keyboard::kbdInterrupt7() {
-    keyboard7Ptr->interruptHandler();
-}
-
-PS2Keyboard::~PS2Keyboard(){
-  detachInterrupt(IRQPin);
-}
+*/

@@ -3,12 +3,13 @@
 #include "ESP32Lib.h"
 #include "PS2Keyboard.h"
 #include "Serial0.h"
+//#include "CodePage437_8x8.h"
 
 PS2Keyboard keyboard;
-
+const uint8_t totalSpaceTab = 4;
 //VGA Device
 extern VGA3Bit vga;
-
+extern Font myfont;
 extern void myprintch(char str);
 extern void restartTimer0();
 extern bool toggle0;
@@ -40,14 +41,16 @@ void Terminal::println(){
 }
 
 void Terminal::print(char ch){
-  col++;
-  if ( col >= 79 ){
-    col = 0;
-    row++;
-  }
-  
-  if( ch == '\n' ){
-    vga.println("");
+
+  if( ch == 0x09 ){
+    for(int i=0; i<totalSpaceTab; i++){
+      vga.print(' ');  
+    }
+  }else if( ch == 13 ){
+    //Todo: Improve the manipulation of last line because 
+    //when cursor is on the lastline and the enter are 
+    //pressed the cursor goes beyound the lastline.
+    vga.println(" ");
   }else{
     vga.print(ch);
   }
@@ -60,7 +63,7 @@ void Terminal::scroll(){
 void Terminal::showCursor(){
     if((toggle0 == toggled) && cursorStatus ){
       if( toggle0 ){
-        vga.printCursor('_');
+        vga.printCursor('_');                                                                                                                                                                                                                                                                                                                                       
       }else{
         vga.printCursor('C');
       }
@@ -87,9 +90,15 @@ void Terminal::printStatus(){
 
 void Terminal::run(){
   //Serial0 * serial = Serial0::getInstance();
-  char ch = keyboard.GetCharcode();
+  char ch = keyboard.GetIso8859Code();
+  //char ch = keyboard.GetCharcode();
+  
   if (ch != 0){
     print(ch);
     Serial1.write(ch);
+    if( ch == 'p' || ch == 'P'){
+      setCursorPosition(row,col);
+      row++;col++;
+    }
   }  
 }

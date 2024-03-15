@@ -139,8 +139,8 @@ class Graphics: public ImageDrawer
 
 	void setCursor(int x, int y)
 	{
-		cursorX = cursorBaseX = x;
-		cursorY = y;
+		cursorX = cursorBaseX = font->charWidth * x;
+		cursorY = font->charHeight * y;
 	}
 
 	virtual void drawChar(int x, int y, int ch)
@@ -176,10 +176,25 @@ class Graphics: public ImageDrawer
 	{
 		if (!font)
 			return;
-		if (font->valid(ch))
+		//Serial.printf("cursorX[%d] cursorY[%d]\n",cursorX, cursorY);
+		if(ch == 0x08){ //process backspace
+			printCursor('C');
+			if( cursorX == 0 ){
+				if( cursorY > 0 )
+					cursorY -= font->charHeight;
+				cursorX = 79 * font->charWidth;
+			}else{
+				cursorX -= font->charWidth;
+			}
+			return;
+		}else if(ch == 0x09){ //process tab
+			drawChar(cursorX, cursorY, ' ');
+		}else if (font->valid(ch)){
 			drawChar(cursorX, cursorY, ch);
+		}
 		else
-			drawChar(cursorX, cursorY, ' ');		
+			drawChar(cursorX, cursorY, ' ');
+
 		cursorX += font->charWidth;
 		if (cursorX + font->charWidth > xres)
 		{
@@ -188,6 +203,7 @@ class Graphics: public ImageDrawer
 			if(autoScroll && cursorY + font->charHeight > yres)
 				scroll(cursorY + font->charHeight - yres, backColor);
 		}
+
 	}
 
 	void printCursor(const char ch)

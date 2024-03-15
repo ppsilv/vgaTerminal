@@ -18,7 +18,7 @@ class Terminal {
 		uint8_t		fgcolor;	//cod do texto
 		bool cursorStatus;
     unsigned long future;
-		
+	
 	public:
         Terminal();
         ~Terminal();

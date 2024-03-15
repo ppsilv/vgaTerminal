@@ -2,7 +2,7 @@
 #include <CircularBuffer.hpp>
 
 #include "ESP32Lib.h"
-#include "Ressources/CodePage437_8x8.h"
+#include "CodePage437_8x8.h"
 #include "Ressources/Font8x8.h"
 #include "PS2Keyboard.h"
 #include "Terminal.h"
@@ -68,10 +68,9 @@ void setup() {
 		while (1);
 	}
 	keyboard.setNumLock();
-	keyboard.handleLeds();  
   Serial.printf("Buffer size: [%02d]\n",keyboard.GetBufferSize());
-  Serial.write("Initialization Completed\n");
   setupCursor();
+  Serial.write("Initialization Completed\n");
   delay(1000);
   //vga.clear();
 }
@@ -81,6 +80,6 @@ void loop(){
   terminal.run();
   terminal.showCursor();
   serial0->run();
-  keyboard.handleLeds();
+  keyboard.verifyStatus();
 }
 
