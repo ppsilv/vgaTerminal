@@ -2,13 +2,13 @@
 #define __SERIAL_H__
 #include <Arduino.h>
 #include <CircularBuffer.hpp>  //https://github.com/ppsilv/CircularBuffer
-
+#include "ESP32Lib.h"
 
 class Serial0{
 public:
       static Serial0 * getInstance();  
         //void onReceiveFunction(void);
-        uint8_t GetChar();
+        //uint8_t GetChar();
         void begin();
         void run();
         void clearScreen();

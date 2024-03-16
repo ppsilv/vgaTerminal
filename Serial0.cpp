@@ -4,6 +4,8 @@
 CircularBuffer<char, 255> buffer;
 Serial0 * Serial0::instance = 0;
 
+//VGA Device
+extern VGA3Bit vga;
 
 Serial0::Serial0(){
 
@@ -23,22 +25,22 @@ void onReceiveFunction(void) {
 
   while (available --) {
     b=(char)Serial1.read();
-    buffer.push(b);
-    Serial.print(b);
+    //buffer.push(b);
+    vga.print(b);
   }
 }
-uint8_t Serial0::GetChar(){
-  return buffer.pop();
-}
+//uint8_t Serial0::GetChar(){
+//  return buffer.pop();
+//}
 void Serial0::begin() {
   Serial1.begin(BAUD, SERIAL_8N1, RXPIN, TXPIN);
   Serial1.onReceive(onReceiveFunction, false); // sets a RX callback function for Serial 1
 }
  
 void Serial0::run() {
-  if( ! buffer.isEmpty() ){
-    char b = buffer.pop();
-    Serial.printf("Serial [%02x]\n",b);
-  }
+//  if( ! buffer.isEmpty() ){
+//    char b = buffer.pop();
+//    Serial.printf("Serial [%02x]\n",b);
+//  }
 }
 

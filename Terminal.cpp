@@ -94,7 +94,7 @@ void Terminal::run(){
   //char ch = keyboard.GetCharcode();
   
   if (ch != 0){
-    print(ch);
+    //print(ch);
     Serial1.write(ch);
   }  
 }

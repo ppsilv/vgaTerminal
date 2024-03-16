@@ -55,7 +55,7 @@ void setup() {
   vga.println("         1          2         3         4         5         6         7         ");
 	vga.println("01234567890123456789012345678901234567890123456789012345678901234567890123456789");
 	vga.println("               ******* Open  Software - Copyright (C) 2024 *******\n");
-	vga.println("Terminal serial.: V 0.0.02\n");
+	vga.println("Terminal serial.: V 0.0.03\n");
   vga.println("Screen mode.....: 640x350");
   vga.println("Serial..........: 9600 8N1");
   vga.println("Keyboard........: US-Keyboard");

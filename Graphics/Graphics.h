@@ -184,11 +184,16 @@ class Graphics: public ImageDrawer
 		if( (cursorY / font->charHeight) >= rows ){
 			//Serial.printf("rows: [%d] cursorY[%d] cursorY * font->charHeight[%d]\n",rows,cursorY, cursorY / font->charHeight);
 			cursorY = (rows -1) * font->charHeight ;
-			printCursor('_');
+			//printCursor('_');
+		}
+		if( ch == 0xA ){
+			//Serial.printf("****************[%d][%x]",ch,ch);
+			cursorX = 0;
+			return;
 		}
 		if( ch == 0xd ){
-			//Serial.printf("****************[%d][%c]",ch,ch);
-			cursorY++;
+			//Serial.printf("****************[%d][%x]",ch,ch);
+			println(' ');
 			return;
 		}
 		if(ch == 0x08){ //process backspace
