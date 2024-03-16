@@ -30,7 +30,8 @@ class Graphics: public ImageDrawer
 	Color **frontBuffer;
 	Color **backBuffer;
 	bool autoScroll;
-
+	int rows;
+    int cols;
 	int xres;
 	int yres;
 
@@ -135,6 +136,9 @@ class Graphics: public ImageDrawer
 	void setFont(Font &font)
 	{
 		this->font = &font;
+		Serial.printf("yres[%d] charHeight[%d]\n",yres,this->font->charHeight);
+		rows = yres / this->font->charHeight;
+		cols = xres / this->font->charWidth;
 	}
 
 	void setCursor(int x, int y)
@@ -177,6 +181,16 @@ class Graphics: public ImageDrawer
 		if (!font)
 			return;
 		//Serial.printf("cursorX[%d] cursorY[%d]\n",cursorX, cursorY);
+		if( (cursorY / font->charHeight) >= rows ){
+			//Serial.printf("rows: [%d] cursorY[%d] cursorY * font->charHeight[%d]\n",rows,cursorY, cursorY / font->charHeight);
+			cursorY = (rows -1) * font->charHeight ;
+			printCursor('_');
+		}
+		if( ch == 0xd ){
+			//Serial.printf("****************[%d][%c]",ch,ch);
+			cursorY++;
+			return;
+		}
 		if(ch == 0x08){ //process backspace
 			printCursor('C');
 			if( cursorX == 0 ){

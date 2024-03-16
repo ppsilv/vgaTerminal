@@ -96,9 +96,5 @@ void Terminal::run(){
   if (ch != 0){
     print(ch);
     Serial1.write(ch);
-    if( ch == 'p' || ch == 'P'){
-      setCursorPosition(row,col);
-      row++;col++;
-    }
   }  
 }

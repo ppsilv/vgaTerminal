@@ -7,6 +7,7 @@
 #include "PS2Keyboard.h"
 #include "Terminal.h"
 #include "Serial0.h"
+#include "soc/rtc_wdt.h"
 
 //pin configuration
 const int redPin = 22;
@@ -37,11 +38,13 @@ void setup() {
   disableCore1WDT(); 
 	delay(500);
 
+  rtc_wdt_protect_off();
+  rtc_wdt_disable();
+
   vga.init(vga.MODE640x350, redPin, greenPin, bluePin, hsyncPin, vsyncPin);
 	//setting the font
 	//vga.setFont(Font6x8);
   vga.setFont(CodePage437_8x8);
-
 	//clearing with white background
 	vga.clear(vga.RGB(0, 0, 0));
 	//text position
@@ -49,14 +52,16 @@ void setup() {
 	//black text color no background color
 	vga.setTextColor(vga.RGB(0, 255, 0));
 	//show the the parameters
-	vga.println("***** Open Software - Copyright (C) 2024 *****\n");
-	vga.println("      Terminal serial V 0.0.01\n");
-  vga.println("      Screen mode: 640x350");
-  vga.println("      Serial.....: 9600 8N1");
-  vga.println("      Keyboard...: US-Keyboard");
-  vga.println("      Cursor.....: ON");
-	vga.print  ("      Free memory: ");	vga.println((int)heap_caps_get_free_size(MALLOC_CAP_DEFAULT));
-  vga.println("**********************************************\n"); 
+  vga.println("         1          2         3         4         5         6         7         ");
+	vga.println("01234567890123456789012345678901234567890123456789012345678901234567890123456789");
+	vga.println("               ******* Open  Software - Copyright (C) 2024 *******\n");
+	vga.println("Terminal serial.: V 0.0.01\n");
+  vga.println("Screen mode.....: 640x350");
+  vga.println("Serial..........: 9600 8N1");
+  vga.println("Keyboard........: US-Keyboard");
+  vga.println("Cursor..........: ON");
+	vga.print  ("Free memory.....: ");	vga.println((int)heap_caps_get_free_size(MALLOC_CAP_DEFAULT));
+  vga.println("******************************************************************************\n"); 
   //Inicialization
   //********************* Serial
   serial0->begin(); 
@@ -79,7 +84,6 @@ void setup() {
 void loop(){
   terminal.run();
   terminal.showCursor();
-  serial0->run();
   keyboard.verifyStatus();
 }
 
