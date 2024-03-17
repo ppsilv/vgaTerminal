@@ -181,19 +181,22 @@ class Graphics: public ImageDrawer
 		if (!font)
 			return;
 		//Serial.printf("cursorX[%d] cursorY[%d]\n",cursorX, cursorY);
-		if( (cursorY / font->charHeight) >= rows ){
-			//Serial.printf("rows: [%d] cursorY[%d] cursorY * font->charHeight[%d]\n",rows,cursorY, cursorY / font->charHeight);
-			cursorY = (rows -1) * font->charHeight ;
-			//printCursor('_');
-		}
 		if( ch == 0xA ){
 			//Serial.printf("****************[%d][%x]",ch,ch);
-			cursorX = 0;
+			cursorX = cursorBaseX;
 			return;
 		}
 		if( ch == 0xd ){
 			//Serial.printf("****************[%d][%x]",ch,ch);
 			println(' ');
+			if( (( cursorY  ) >=  (40 * font->charHeight) )  ){
+				cursorX = cursorBaseX;
+				//cursorY += font->charHeight; //(rows -1) * font->charHeight ;
+				Serial.printf("cursorY [%d] - yres[%d] yres[%d]\n ",cursorY, cursorY+font->charHeight, yres );
+				if(autoScroll && cursorY + font->charHeight > yres)
+					scroll(font->charHeight , backColor);
+				printCursor('Z');
+			}
 			return;
 		}
 		if(ch == 0x08){ //process backspace
@@ -219,8 +222,10 @@ class Graphics: public ImageDrawer
 		{
 			cursorX = cursorBaseX;
 			cursorY += font->charHeight;
-			if(autoScroll && cursorY + font->charHeight > yres)
+			if(autoScroll && cursorY + font->charHeight > yres){
+				Serial.printf("cursorY [%d] - cursorY +font[%d] yres[%d]\n ",cursorY, cursorY+font->charHeight, yres );
 				scroll(cursorY + font->charHeight - yres, backColor);
+			}
 		}
 
 	}
