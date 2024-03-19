@@ -10,7 +10,7 @@
 		http://bitluni.net
 */
 #include "I2S/I2S.h"
-//#include "../Tools/Log.h"
+#include "Tools/Log.h"
 #include <soc/rtc.h>
 #include <driver/rtc_io.h>
 
