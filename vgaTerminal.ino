@@ -57,7 +57,8 @@ void setup() {
 	vga.println("               ******* Open  Software - Copyright (C) 2024 *******\n");
 	vga.println("Terminal serial.: V 0.0.04\n");
   vga.println("Screen mode.....: 640x350");
-  vga.println("Serial..........: 9600 8N1");
+  int baud = serial0->getBaud();
+  vga.print("Serial..........: ");vga.print(baud);vga.println("-8N1" );
   vga.println("Keyboard........: US-Keyboard");
   vga.println("Cursor..........: ON");
 	vga.print  ("Free memory.....: ");	vga.println((int)heap_caps_get_free_size(MALLOC_CAP_DEFAULT));

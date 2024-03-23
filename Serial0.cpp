@@ -1,7 +1,7 @@
 #include <type_traits>
 #include "Serial0.h"
 
-CircularBuffer<char, 255> buffer;
+//CircularBuffer<char, 255> buffer;
 Serial0 * Serial0::instance = 0;
 
 //VGA Device
@@ -28,6 +28,10 @@ void onReceiveFunction(void) {
     //buffer.push(b);
     vga.print(b);
   }
+}
+
+int Serial0::getBaud() {
+  return BAUD;
 }
 //uint8_t Serial0::GetChar(){
 //  return buffer.pop();
