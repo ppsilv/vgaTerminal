@@ -1,13 +1,17 @@
-#include <Arduino.h>
-#include <CircularBuffer.hpp>
-
-#include "ESP32Lib.h"
-#include "CodePage437_8x8.h"
-#include "Ressources/Font8x8.h"
+/*
+  Autor: Paulo da Silva
+  Data.: 02/10/2024
+  Versão: 0.1.00 
+          A versão 0.1.00 foi aproveitado os códigos Serial0,PS2Keyboard e Terminal e o
+          código vgaTerminal foi totalmente refeito, pois a versão 0.0.04 não estava compilando
+          
+*/
+#include <ESP32Video.h>
+#include <Ressources/Font6x8.h>
+#include <Ressources/CodePage437_8x8.h>
+#include "Serial0.h"
 #include "PS2Keyboard.h"
 #include "Terminal.h"
-#include "Serial0.h"
-#include "soc/rtc_wdt.h"
 
 //pin configuration
 const int redPin = 22;
@@ -16,57 +20,55 @@ const int bluePin = 5;
 const int hsyncPin = 23;
 const int vsyncPin = 15;
 
-//Pin as input for while TODO: Better this situation
-const int Red_0   = 21;
-const int Green_0 = 18;
-const int Blue_0  = 4;
-
 //VGA Device
-VGA3Bit vga;
-extern PS2Keyboard keyboard;
+VGA1BitI vga;
+//Serial
+TSerial0 *serial0 = TSerial0::getInstance();
+//Keyboard
+PS2Keyboard keyboard;
+//Terminal
 Terminal terminal;
-Serial0 *serial0 = Serial0::getInstance();
 
-Font myfont = CodePage437_8x8;
-extern void setupCursor();
+const uint8_t frontColors[] = {0x2,0x0,0x1,0x4,0x1,0x7,0x3};
+const uint8_t backColors[] = {0x0,0x7,0x0,0x6,0x7,0x0,0x4};
 
-void setup() {
-  Serial.begin(115200);
+char * versao = "0.1.00";
+char * screenMode = "640x400";
+int baudrate = serial0->getBaud() ;
+char * uartConfig = "8N1";
+char * keyboardType = "US-Keyboard";
+char * cursorStatus = "ON";
 
-  disableCore0WDT();
-  delay(500); // experienced crashes without this delay!
-  disableCore1WDT(); 
-	delay(500);
-
-  rtc_wdt_protect_off();
-  rtc_wdt_disable();
-
-  vga.init(vga.MODE640x350, redPin, greenPin, bluePin, hsyncPin, vsyncPin);
-	//setting the font
-	//vga.setFont(Font6x8);
-  vga.setFont(CodePage437_8x8);
-	//clearing with white background
-	vga.clear(vga.RGB(0, 0, 0));
-	//text position
-	vga.setCursor(0, 0);
-	//black text color no background color
-	vga.setTextColor(vga.RGB(0, 255, 0));
-	//show the the parameters
+void header()
+{
   vga.println("         1          2         3         4         5         6         7         ");
 	vga.println("01234567890123456789012345678901234567890123456789012345678901234567890123456789");
 	vga.println("               ******* Open  Software - Copyright (C) 2024 *******\n");
-	vga.println("Terminal serial.: V 0.0.04\n");
-  vga.println("Screen mode.....: 640x350");
-  int baud = serial0->getBaud();
-  vga.print("Serial..........: ");vga.print(baud);vga.println("-8N1" );
-  vga.println("Keyboard........: US-Keyboard");
-  vga.println("Cursor..........: ON");
-	vga.print  ("Free memory.....: ");	vga.println((int)heap_caps_get_free_size(MALLOC_CAP_DEFAULT));
-  vga.println("******************************************************************************\n"); 
-  //Inicialization
-  //********************* Serial
+	vga.print("Terminal serial.: Versao ");vga.println((const char *)versao);
+  vga.print("Screen mode.....: ");vga.println((const char *)screenMode);
+  vga.print("Serial..........: ");vga.print(baudrate); vga.print("-"); vga.println((const char *)uartConfig);//serial0->getBaud();vga.println("-8N1" );
+  vga.print("Keyboard........: ");vga.println((const char *)keyboardType);
+  vga.print("Cursor..........: ");vga.println((const char *)cursorStatus);
+	vga.print("Free memory.....: ");vga.println((int)heap_caps_get_free_size(MALLOC_CAP_DEFAULT));
+  vga.println("********************************************************************************\n");  
+}
+
+void setup()
+{
+  Serial.begin(115200);
+	//initializing vga at the specified pins
+	vga.init(VGAMode::MODE640x400, redPin, greenPin, bluePin, hsyncPin, vsyncPin);
+	//selecting the font
+  vga.setFont(CodePage437_8x8);
+  vga.setTextColor(vga.RGB(0, 255, 0));
+  vga.setCursor(0,0);
+
+
+  //Print terminal header
+  header();
+  //Serial0 
   serial0->begin(); 
-  //********************* Keyboard
+  //Keyboard
   keyboard.begin(); 
 	if (keyboard.WaitForKeyboard() == false)
 	{
@@ -74,17 +76,16 @@ void setup() {
 		while (1);
 	}
 	keyboard.setNumLock();
+  //Initialization Completed
   Serial.printf("Buffer size: [%02d]\n",keyboard.GetBufferSize());
-  setupCursor();
+  //setupCursor();
   Serial.write("Initialization Completed\n");
   delay(1000);
-  //vga.clear();
 }
 
-
-void loop(){
+void loop()
+{
   terminal.run();
-  terminal.showCursor();
+  terminal.showCursor();  
   keyboard.verifyStatus();
 }
-

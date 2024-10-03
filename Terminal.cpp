@@ -1,14 +1,14 @@
 #include <Arduino.h>
 #include "Terminal.h"
-#include "ESP32Lib.h"
+#include <ESP32Video.h>
 #include "PS2Keyboard.h"
 #include "Serial0.h"
 //#include "CodePage437_8x8.h"
 
-PS2Keyboard keyboard;
+extern PS2Keyboard keyboard;
 const uint8_t totalSpaceTab = 4;
 //VGA Device
-extern VGA3Bit vga;
+extern VGA1BitI vga;
 extern Font myfont;
 extern void myprintch(char str);
 extern void restartTimer0();
@@ -46,7 +46,7 @@ void Terminal::print(char ch){
     for(int i=0; i<totalSpaceTab; i++){
       vga.print(' ');  
     }
-  }else if( ch == 13 ){
+  }else if( ch == 13 || ch == 10 ){
     //Todo: Improve the manipulation of last line because 
     //when cursor is on the lastline and the enter are 
     //pressed the cursor goes beyound the lastline.
@@ -61,6 +61,7 @@ void Terminal::scroll(){
 }
 
 void Terminal::showCursor(){
+  /*
     if((toggle0 == toggled) && cursorStatus ){
       if( toggle0 ){
         vga.printCursor('_');                                                                                                                                                                                                                                                                                                                                       
@@ -73,14 +74,11 @@ void Terminal::showCursor(){
         future= millis()+alarme;
       }
     }
+    */
 }	
 
 void Terminal::setCursorPosition(uint8_t row, uint8_t col){
   vga.setCursor(col, row);
-}
-
-void Terminal::clearScren(){
-
 }
 
 //Last line with terminal parameters
@@ -94,7 +92,13 @@ void Terminal::run(){
   //char ch = keyboard.GetCharcode();
   
   if (ch != 0){
-    //print(ch);
-    Serial1.write(ch);
+    if ( ch == 10 || ch == 13){
+      Serial.println(" ");
+      Serial2.println(" ");
+    }else{
+      Serial.print("|");
+      Serial.print(ch);
+      Serial2.print(ch);
+    }
   }  
 }

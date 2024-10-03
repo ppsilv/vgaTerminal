@@ -1,50 +1,44 @@
 #include <type_traits>
 #include "Serial0.h"
+#include "Terminal.h"
+
 
 //CircularBuffer<char, 255> buffer;
-Serial0 * Serial0::instance = 0;
+TSerial0 * TSerial0::instance = 0;
 
 //VGA Device
-extern VGA3Bit vga;
+//extern VGA1BitI vga;
+//Terminal
+extern Terminal terminal;
 
-Serial0::Serial0(){
+TSerial0::TSerial0(){
 
 }
-Serial0::~Serial0(){
+TSerial0::~TSerial0(){
 }
-Serial0 * Serial0::getInstance(){
+TSerial0 * TSerial0::getInstance(){
     if ( instance == NULL ){
-      instance = new Serial0();
+      instance = new TSerial0();
     }
     return instance;
 }
+//Caracter vem da serial e vai em direção ao terminal
 void onReceiveFunction(void) {
   char b;
-  char available = Serial1.available();
-  //received_bytes += available;
-
+  char available = Serial2.available();
   while (available --) {
-    b=(char)Serial1.read();
-    //buffer.push(b);
-    vga.print(b);
+    b=(char)Serial2.read();
+    terminal.print(b);
   }
 }
 
-int Serial0::getBaud() {
+int TSerial0::getBaud() {
   return BAUD;
 }
-//uint8_t Serial0::GetChar(){
-//  return buffer.pop();
-//}
-void Serial0::begin() {
-  Serial1.begin(BAUD, SERIAL_8N1, RXPIN, TXPIN);
-  Serial1.onReceive(onReceiveFunction, false); // sets a RX callback function for Serial 1
+
+void TSerial0::begin() {
+  Serial2.begin(BAUD, SERIAL_8N1, RXPIN, TXPIN);
+  Serial2.onReceive(onReceiveFunction, false); // sets a RX callback function for Serial 1
 }
  
-void Serial0::run() {
-//  if( ! buffer.isEmpty() ){
-//    char b = buffer.pop();
-//    Serial.printf("Serial [%02x]\n",b);
-//  }
-}
 
