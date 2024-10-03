@@ -81,7 +81,6 @@ void setup()
   //setupCursor();
   Serial.write("Initialization Completed\n");
   delay(1000);
-  Serial2.write("Initialization Completed\n");
 }
 
 void loop()

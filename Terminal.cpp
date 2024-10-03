@@ -93,11 +93,11 @@ void Terminal::run(){
   
   if (ch != 0){
     if ( ch == 10 || ch == 13){
-      Serial.println(" ");
-      Serial2.println(" ");
+      //Serial.println("ch");
+      Serial2.println(ch);
     }else{
-      Serial.print("|");
-      Serial.print(ch);
+      //Serial.print("|");
+      //Serial.print(ch);
       Serial2.print(ch);
     }
   }  
