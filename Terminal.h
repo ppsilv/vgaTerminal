@@ -25,7 +25,9 @@ class Terminal {
 		void println();
 		void print(char ch);
 		void scroll();	
+    
     void showCursor();
+    void showCursorCursorStatus();
 		void setCursorPosition(uint8_t row, uint8_t col);
     void run();
 		//escreve uma linha de estado no rodapé da tela

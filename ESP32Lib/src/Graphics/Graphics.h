@@ -369,6 +369,21 @@ class Graphics: public ImageDrawer, public InterfaceColor, public BufferLayout, 
 		cursorY = y;
 	}
 
+	void setCursorBS()
+	{
+		Serial.println(cursorX);
+		if (cursorX == 0){
+			cursorY -= this->font->charHeight;
+			cursorX = 79*this->font->charWidth;
+		}else{
+			cursorX -= this->font->charWidth;
+		}
+		//cursorY += y;
+
+
+
+	}
+
 	virtual void drawChar(int x, int y, int ch)
 	{
 		if (!font)
@@ -382,6 +397,31 @@ class Graphics: public ImageDrawer, public InterfaceColor, public BufferLayout, 
 					dotMix(px + x, py + y, frontColor);
 				else
 					dotMix(px + x, py + y, backColor);
+	}
+
+	virtual void drawChar1(int x, int y, int ch)
+	{
+		if (!font)
+			return;
+		if (!font->valid(ch))
+			return;
+		const unsigned char *pix = &font->pixels[font->charWidth * font->charHeight * (ch - font->firstChar)];
+		for (int py = 0; py < font->charHeight; py++)
+			for (int px = 0; px < font->charWidth; px++)
+					dot(px + x, py + y, backColor);
+
+	}
+	void printCursor(const char ch)
+	{
+		char ch1 = '_';
+		if (!font)
+			return;
+		if ( ch == 'C'){
+			drawChar1(cursorX, cursorY, ch1);
+		}
+		else{
+			drawChar(cursorX, cursorY, ch);
+		}
 	}
 
 	void print(const char ch)

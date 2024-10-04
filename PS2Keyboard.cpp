@@ -65,7 +65,7 @@ const char chrsSH1[]={
     0,    0,    0,    247,  0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0,    0};
 
 
-#define BUFFER_SIZE 128
+#define BUFFER_SIZE 256
 static volatile uint8_t buffer[BUFFER_SIZE];
 static volatile uint8_t head, tail;
 
@@ -218,15 +218,12 @@ byte PS2Keyboard::GetScancode()
 }
 byte PS2Keyboard::GetCharcode()
 {
-	uint8_t c, i;
+	uint8_t c;//, i;
 
-	i = tail;
-	if (i == head) return 0;
-	i++;
-
-	if (i >= BUFFER_SIZE) i = 0;
-	c = buffer[i];
-	tail = i;
+	//i = tail;
+	if (tail == head) return 0;
+	c = buffer[tail];
+	tail++;
   return(chrsNS[c]);
 }
 //void KeyboardISR() //FALLING EDGE
@@ -294,11 +291,12 @@ void IRAM_ATTR PS2Keyboard::interruptHandler(){
 	}
 	bitcount++;
 	if (bitcount == 11){
-		uint8_t i = head + 1;
-		if (i >= BUFFER_SIZE) i = 0;
-		if (i != tail) {
-			buffer[i] = incoming;
-			head = i;
+		//uint8_t i = head + 1;
+		//if (i >= BUFFER_SIZE) i = 0;
+    head++;
+		if (head != tail) {
+			buffer[head] = incoming;
+			//head = i;
 		}
     bitcount = 0;
 		incoming = 0;

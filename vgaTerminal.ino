@@ -29,6 +29,8 @@ PS2Keyboard keyboard;
 //Terminal
 Terminal terminal;
 
+extern void setupTimer();
+
 const uint8_t frontColors[] = {0x2,0x0,0x1,0x4,0x1,0x7,0x3};
 const uint8_t backColors[] = {0x0,0x7,0x0,0x6,0x7,0x0,0x4};
 
@@ -37,7 +39,8 @@ char * screenMode = "640x400";
 int baudrate = serial0->getBaud() ;
 char * uartConfig = "8N1";
 char * keyboardType = "US-Keyboard";
-char * cursorStatus = "ON";
+
+extern void loopTimer();
 
 void header()
 {
@@ -48,7 +51,7 @@ void header()
   vga.print("Screen mode.....: ");vga.println((const char *)screenMode);
   vga.print("Serial..........: ");vga.print(baudrate); vga.print("-"); vga.println((const char *)uartConfig);//serial0->getBaud();vga.println("-8N1" );
   vga.print("Keyboard........: ");vga.println((const char *)keyboardType);
-  vga.print("Cursor..........: ");vga.println((const char *)cursorStatus);
+  vga.print("Cursor..........: ");terminal.showCursorCursorStatus();
 	vga.print("Free memory.....: ");vga.println((int)heap_caps_get_free_size(MALLOC_CAP_DEFAULT));
   vga.println("********************************************************************************\n");  
 }
@@ -78,9 +81,10 @@ void setup()
 	keyboard.setNumLock();
   //Initialization Completed
   Serial.printf("Buffer size: [%02d]\n",keyboard.GetBufferSize());
-  //setupCursor();
+  setupTimer();
   Serial.write("Initialization Completed\n");
   delay(1000);
+  
 }
 
 void loop()
