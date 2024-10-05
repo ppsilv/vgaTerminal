@@ -23,13 +23,14 @@ class Terminal {
         Terminal();
         ~Terminal();
 		void println();
-		void print(char ch);
+		void print(uint8_t ch);
 		void scroll();	
     
     void showCursor();
     void showCursorCursorStatus();
 		void setCursorPosition(uint8_t row, uint8_t col);
     void run();
+    void execCmdVt100();
 		//escreve uma linha de estado no rodapé da tela
 		void printStatus();
 };
