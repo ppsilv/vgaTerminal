@@ -23,7 +23,7 @@ class Terminal {
         Terminal();
         ~Terminal();
 		void println();
-		void print(uint8_t ch);
+		void print(const char ch);
 		void scroll();	
     
     void showCursor();

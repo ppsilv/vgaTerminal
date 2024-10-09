@@ -442,6 +442,24 @@ class Graphics: public ImageDrawer, public InterfaceColor, public BufferLayout, 
 		}
 	}
 
+	void print(unsigned char ch)
+	{
+		if (!font)
+			return;
+		if (font->valid(ch))
+			drawChar(cursorX, cursorY, ch);
+		else
+			drawChar(cursorX, cursorY, ' ');
+		cursorX += cursorXIncrement;
+		if (cursorX + cursorXIncrement > xres)
+		{
+			cursorX = cursorBaseX;
+			cursorY += cursorYIncrement;
+			if(autoScroll && cursorY + cursorYIncrement > yres)
+				scroll(cursorY + cursorYIncrement - yres, backColor);
+		}
+	}
+
 	void println(const char ch)
 	{
 		print(ch);
@@ -467,7 +485,7 @@ class Graphics: public ImageDrawer, public InterfaceColor, public BufferLayout, 
 
 	void println(const char *str)
 	{
-		print(str); 
+		print(str);
 		print("\n");
 	}
 

@@ -166,7 +166,7 @@ public:
       //void vt100_state_feed_opensmallbracket(uint8_t data);
       //void vt100_state_feed_closesmallbracket(uint8_t data);
 
-      void vt100_putch(uint8_t data);
+      void vt100_putch(const char  data);
       void vt100_BS(void);
       void vt100_CUP(void);
       void vt100_CUD(void);

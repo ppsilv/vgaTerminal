@@ -370,12 +370,13 @@ void vt100_state_feed_question(uint8_t data) /* ESC [ ? */
  */
 void Vt100::vt100_state(uint8_t data)
 {
+  //Serial.print(data);
 	if (data < 0x20) { /* C0 control characters */
 		switch (data) {
-		case ASCII_ESC:
-			set_vt100_state_feed(vt100_state_feed_C1);
-			vt100.param.count = 0;
-		break;
+		//case ASCII_ESC:
+		//	set_vt100_state_feed(vt100_state_feed_C1);
+		//	vt100.param.count = 0;
+		//break;
 		case ASCII_ETX:
 			uart_send(ASCII_ACK);
 		break;
@@ -429,7 +430,7 @@ void Vt100::vt100_state(uint8_t data)
 	}
 }
 
-void Vt100::vt100_putch(uint8_t data){
+void Vt100::vt100_putch(const char data){
   vga.print(data);
 }
 void Vt100::vt100_BS(void){
@@ -527,10 +528,11 @@ void Vt100::vt100_HT(){
   Serial.println("Vt100::vt100_HT -Not implemented");
 }
 void Vt100::vt100_LF(){
-  Serial.println("Vt100::vt100_LF -Not implemented");
+  //Serial.println("Vt100::vt100_LF -Not implemented");
+  vga.println(" ");
 }
 void Vt100::vt100_CR(){
-  Serial.println("Vt100::vt100_CR -Not implemented");
+  //Serial.println("Vt100::vt100_CR -Not implemented");
 }
 void Vt100::vt100_XON(){
   Serial.println("Vt100::vt100_XON -Not implemented");

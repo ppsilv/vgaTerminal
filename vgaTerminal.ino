@@ -63,7 +63,8 @@ void setup()
 	vga.init(VGAMode::MODE640x400, redPin, greenPin, bluePin, hsyncPin, vsyncPin);
 	//selecting the font
   vga.setFont(CodePage437_8x8);
-  vga.setTextColor(vga.RGB(0, 255, 0));
+	vga.setFrontGlobalColor(0,255,0);
+	vga.setBackGlobalColor(0,0,0);  
   vga.setCursor(0,0);
 
 

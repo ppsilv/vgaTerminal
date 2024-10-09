@@ -1,0 +1,546 @@
+VT100 commands and control sequences
+edited by Paul Bourke
+
+The  following  are  the VT100 commands as  described  by  the
+Digital VT101 Video Terminal User Guide  (EK-VT101-UG-003).   An
+asterik (*)  beside the function indicate that it is  currently
+supported.  A plus (+) means the function is trapped and ignored.
+
+Scrolling Functions:
+
+ *  ESC [ pt ; pb r   set scroll region
+ *  ESC [ ? 6 h       turn on region - origin mode
+ *  ESC [ ? 6 l       turn off region - full screen mode
+
+Collor functions:
+ESC [40m = Black
+ESC [41m = Red
+ESC [42m = Green
+ESC [43m = Yellow
+ESC [44m = Blue
+ESC [45m = Magenta
+ESC [46m = Cyan
+ESC [47m = White
+
+Cursor Functions:
+
+ *  ESC [ pn A        cursor up pn times - stop at top
+ *  ESC [ pn B        cursor down pn times - stop at bottom
+ *  ESC [ pn C        cursor right pn times - stop at far right
+ *  ESC [ pn D        cursor left pn times - stop at far left
+ *  ESC [ pl ; pc H   set cursor position - pl Line, pc Column
+ *  ESC [ H           set cursor home
+ *  ESC [ pl ; pc f   set cursor position - pl Line, pc Column
+ *  ESC [ f           set cursor home
+ *  ESC D             cursor down - at bottom of region, scroll up
+ *  ESC M             cursor up - at top of region, scroll down
+ *  ESC E             next line (same as CR LF)
+ *  ESC 7             save cursor position(char attr,char set,org)
+ *  ESC 8             restore position (char attr,char set,origin)
+
+Applications / Normal Mode:
+
+ *  ESC [ ? 1 h       cursor keys in applications mode
+ *  ESC [ ? 1 l       cursor keys in cursor positioning mode
+ *  ESC =             keypad keys in applications mode
+ *  ESC >             keypad keys in numeric mode
+
+Character Sets:
+
+ *  ESC ( A           UK char set as G0
+ *  ESC ( B           US char set as G0
+ *  ESC ( 0           line char set as G0
+ *  ESC ) A           UK char set as G1
+ *  ESC ) B           US char set as G1
+ *  ESC ) 0           line char set as G1
+ *  ESC N             select G2 set for next character only
+ *  ESC O             select G3 set for next character only
+
+Character Attributes:
+
+ *  ESC [ m           turn off attributes - normal video
+ *  ESC [ 0 m         turn off attributes - normal video
+!*  ESC [ 4 m         turn on underline mode
+ *  ESC [ 7 m         turn on inverse video mode
+ *  ESC [ 1 m         highlight
+ *  ESC [ 5 m         blink
+
+!  On color systems underlined characters are displayed in blue
+
+Line Attributes:
+
+ +  ESC # 3           double high (top half) - double wide
+ +  ESC # 4           double high (bottom half) - double wide
+ +  ESC # 5           single wide - single height
+ +  ESC # 6           double wide - single height
+
+Erasing:
+
+ *  ESC [ K           erase to end of line (inclusive)
+ *  ESC [ 0 K         erase to end of line (inclusive)
+ *  ESC [ 1 K         erase to beginning of line (inclusive)
+ *  ESC [ 2 K         erase entire line (cursor doesn't move)
+ *  ESC [ J           erase to end of screen (inclusive)
+ *  ESC [ 0 J         erase to end of screen (inclusive)
+ *  ESC [ 1 J         erase to beginning of screen (inclusive)
+ *  ESC [ 2 J         erase entire screen (cursor doesn't move)
+
+Tabulation:
+
+ *  ESC H             set tab in current position
+ *  ESC [ g           clear tab stop in current position
+ *  ESC [ 0 g         clear tab stop in current position
+ *  ESC [ 3 g         clear all tab stops
+
+Printing:
+
+ *  ESC [ i           print page
+ *  ESC [ 0 i         print page
+ *  ESC [ 1 i         print line
+ *  ESC [ ? 4 i       auto print off
+ *  ESC [ ? 5 i       auto print on
+ +  ESC [ 4 i         print controller off
+ +  ESC [ 5 i         print controller on
+
+Requests / Reports:
+
+ *  ESC [ 5 n         request for terminal status
+    ESC [ 0 n         report - no malfunction
+ *  ESC [ 6 n         request for cursor position report
+    ESC [ pl;pc R     report - cursor at line pl, & column pc
+ *  ESC [ ? 1 5 n     request printer status
+    ESC [ ? 1 0 n     report - printer ready
+ *  ESC [ c           request to identify terminal type
+ *  ESC [ 0 c         request to identify terminal type
+ *  ESC Z             request to identify terminal type
+    ESC [ ? 1;0 c     report - type VT100
+
+Initialization / Tests:
+
+ +  ESC c             reset to initial state
+ +  ESC [ 2 ; 1 y     power up test
+ +  ESC [ 2 ; 2 y     loop back test
+ +  ESC [ 2 ; 9 y     power up test till failure or power down
+ +  ESC [ 2 ; 10 y    loop back test till failure or power down
+ +  ESC # 8           video alignment test-fill screen with E's
+
+
+Setup Functions:
+
+ +  ESC [ ? 2 l       enter VT52 mode
+ +  ESC <             exit VT52 mode
+ +  ESC [ ? 3 h       132 column mode
+ +  ESC [ ? 3 l       80 column mode
+ +  ESC [ ? 4 h       smooth scroll
+ +  ESC [ ? 4 l       jump scroll
+ *  ESC [ ? 5 h       black characters on white screen mode
+ *  ESC [ ? 5 l       white characters on black screen mode
+ *  ESC [ ? 7 h       auto wrap to new line
+ *  ESC [ ? 7 l       auto wrap off
+ +  ESC [ ? 8 h       keyboard auto repeat mode on
+ +  ESC [ ? 8 l       keyboard auto repeat mode off
+ +  ESC [ ? 9 h       480 scan line mode
+ +  ESC [ ? 9 l       240 scan line mode
+ *  ESC [ ? 1 8 h     print form feed on
+ *  ESC [ ? 1 8 l     print form feed off
+ *  ESC [ ? 1 9 h     print whole screen
+ *  ESC [ ? 1 9 l     print only scroll region
+ +  ESC [ 2 0 h       newline mode LF, FF, VT, CR = CR/LF)
+ +  ESC [ 2 0 l       line feed mode (LF, FF, VT = LF ; CR = CR)
+
+LED Functions:
+
+!*  ESC [ 0 q         turn off LED 1-4
+!*  ESC [ 1 q         turn on LED #1
+!*  ESC [ 2 q         turn on LED #2
+!*  ESC [ 3 q         turn on LED #3
+!*  ESC [ 4 q         turn on LED #4
+
+!   The bottom line of the screen is used as a status line by the
+    VT100 emulation.   The information on the bottom line is:
+
+1)  the status of the four VT100 LED's
+2)  the  status  of the numeric  keypad  (application mode /normal mode)
+3)  the  status  of  the cursor  keypad  (application mode/normal  mode)
+
+
+Interpreted Control Characters:
+
+ *  ^O                shift in  - selects G0 character set
+ *  ^N                shift out - selects G1 character set
+
+
+VT100 KEYBOARD MAP
+
+   The following table describes the special function keys of the
+VT100 and shows the transmitted sequences.  It also shows the key
+or  key sequence required to produce this function on the  IBM-PC
+keyboard.  The  VT100 has four function keys PF1 - PF4,  four arrow
+keys, and a numeric keypad with 0-9,  ".",  "-",  RETURN and  ",".
+The numeric  keypad  and  the arrow keys may be in standard  mode or
+applications mode as set by the host computer.  Sequences will be
+sent as follows:
+
+ To Get                                  Press Key on
+VT100 Key    Standard    Applications     IBM Keypad
+=====================================================
+
+                                          NUMLOK - On
+Keypad:
+
+   0            0           ESC O p           0
+   1            1           ESC O q           1
+   2            2           ESC O r           2
+   3            3           ESC O s           3
+   4            4           ESC O t           4
+   5            5           ESC O u           5
+   6            6           ESC O v           6
+   7            7           ESC O w           7
+   8            8           ESC O x           8
+   9            9           ESC O y           9
+   -            -           ESC O m           -
+   ,            ,           ESC O l      * (on PrtSc key)
+   .            .           ESC O n           .
+Return       Return         ESC O M           +
+
+
+                                         NUMLOK - Off
+Arrows:
+
+   Up        ESC [ A        ESC O A           Up
+  Down       ESC [ B        ESC O B          Down
+  Right      ESC [ C        ESC O C          Right
+  Left       ESC [ D        ESC O D          Left
+
+   Up        ESC [ A        ESC O A          Alt 9
+  Down       ESC [ B        ESC O B          Alt 0
+  Right      ESC [ C        ESC O C          Alt -
+  Left       ESC [ D        ESC O D          Alt =
+
+  Note that either set of keys may be used to send VT100 arrow keys.
+  The Alt 9,0,-, and = do not require NumLok to be off.
+
+Functions:
+
+PF1 - Gold   ESC O P        ESC O P           F1
+PF2 - Help   ESC O Q        ESC O Q           F2
+PF3 - Next   ESC O R        ESC O R           F3
+PF4 - DelBrk ESC O S        ESC O S           F4
+
+
+   Please note that the backspace key transmits an ascii DEL
+(character 127) while in VT100 emulation.  To get a true ascii
+backspace (character 8) you must press control-backspace.
+
+
+*******************************************************************************************************************************
+*******************************************************************************************************************************
+*******************************************************************************************************************************
+UM OUTRO COMPÊNDIO SOBRE VT100
+*******************************************************************************************************************************
+*******************************************************************************************************************************
+*******************************************************************************************************************************
+VT100 ESCape Codes
+VT52 Compatable Mode
+ESC A           Cursor up
+ESC B           Cursor down
+ESC C           Cursor right
+ESC D           Cursor left
+ESC F           Special graphics character set
+ESC G           Select ASCII character set
+ESC H           Cursor to home
+ESC I           Reverse line feed
+ESC J           Erase to end of screen
+ESC K           Erase to end of line
+ESC Ylc         Direct cursor address (See note 1)
+ESC Z           Identify (See note 2)
+ESC =           Enter alternate keypad mode
+ESC >           Exit alternate keypad mode
+ESC 1           Graphics processor on (See note 3)
+ESC 2           Graphics processor off (See note 3)
+ESC <           Enter ANSI mode
+
+Note 1:  Line and column numbers for direct cursor addresses are single
+         character codes whose values are the desired number plus 37 octal.
+         Line and column numbers start at 1.
+
+Note 2:  Response to ESC Z is ESC/Z.
+
+Note 3:  Ignored if no graphics processor stored in the VT100
+
+
+ANSI Compatable Mode
+
+
+ESC [ Pn A      Cursor up Pn lines
+ESC [ Pn B      Cursor down Pn lines
+ESC [ Pn C      Cursor forward Pn characters (right)
+ESC [ Pn D      Cursor backward Pn characters (left)
+ESC [ Pl;PcH    Direct cursor addressing, where Pl is line#, Pc is column#
+ESC [ Pl;Pcf    Same as above
+ESC D           Index
+ESC M           Reverse index
+ESC 7           Save cursor and attributes
+ESC 8           Restore cursor and attributes
+
+ESC #3          Change this line to double-height top half
+ESC #4          Change this line to double-height bottom half
+ESC #5          Change this line to single-width single-height
+ESC #6          Change this line to double-width single-height
+
+ESC [ Ps..Ps m  Ps refers to selective parameter. Multiple parameters are
+                separated by the semicolon character (073 octal). The param-
+                eters are executed in order and have the following meaning:
+
+                0 or none               All attributes off
+                1                       Bold on
+                4                       Underscore on
+                5                       Blink on
+                7                       Reverse video on
+
+                Any other parameters are ignored.
+
+ESC [ K         Erase from cursor to end of line
+ESC [ 0K        Same
+ESC [ 1K        Erase from beginning of line to cursor
+ESC [ 2K        Erase line containing cursor
+ESC [ J         Erase from cursor to end of screen
+ESC [ 0J        Same
+ESC [ 2J        Erase entire screen
+
+ESC [ Ps..Ps q  Programmable LEDs: Ps are selective parameters separated by
+                semicolons (073 octal) and executed in order, as follows:
+
+                0 or None               All LEDs off
+                1                       L1 On
+                2                       L2 On
+                3                       L3 On
+                4                       L4 On
+
+                Any other parameter values are ignored.
+
+The following select alternative character sets. The G1 set is invoked for
+use by the control code SO (Shift Out), the G0 set is invoked by the control
+code SI (Shift In).
+
+G0 designator   G1 designator           Character set
+
+ESC ( A         ESC ) A                 United Kingdom (UK)
+ESC ( B         ESC ) B                 United States (USASCII)
+ESC ( 0         ESC ) 0                 Special graphics/line drawing set
+ESC ( 1         ESC ) 1                 Alternative character ROM
+ESC ( 2         ESC ) 2                 Alternative graphic ROM
+
+ESC K Pt;Pb r   Set top scrolling window (Pt) and bottom scrolling window
+                (Pb). Pb must be greater than Pb.
+
+ESC H           Set tab at current column
+ESC [ g         Clear tab at current column
+ESC [ 0g        Same
+ESC [ 3g        Clear all tabs
+
+Modes
+-----
+
+Mode Name       Mode            To set seq      Mode            To reset seq
+
+Line feed/new   New line        ESC [20h        Line feed       ESC [20l
+Cursor key      Application     ESC [?1h        Cursor          ESC [?1l
+ANSI/VT52       ANSI            n/a             VT52            ESC [?2l
+Column mode     132 col         ESC [?3h        80 col          ESC [?3l
+Scrolling       Smooth          ESC [?4h        Jump            ESC [?4l
+Screen mode     Reverse         ESC [?5h        Normal          ESC [?5l
+Origin mode     Relative        ESC [?6h        Absolute        ESC [?6l
+Wraparound      On              ESC [?7h        Off             ESC [?7l
+Autorepeat      On              ESC [?8h        Off             ESC [?8l
+Interface       On              ESC [?9h        Off             ESC [?9l
+
+Reports
+-------
+
+ESC [ 6n        Cursor position report
+ESC [ Pl;PcR            (response; Pl=line#; Pc=column#)
+ESC [ 5n        Status report
+ESC [ c                 (response; terminal Ok)
+ESC [ 0c                (response; teminal not Ok)
+ESC [ c         What are you?
+ESC [ 0c        Same
+ESC [?1;Ps c            response; where Ps is option present:
+
+                        0               Base VT100, no options
+                        1               Preprocessor option (STP)
+                        2               Advanced video option (AVO)
+                        3               AVO and STP
+                        4               Graphics processor option (GO)
+                        5               GO and STP
+                        6               GO and AVO
+                        7               GO, STP, and AVO
+
+ESC c           Causes power-up reset routine to be executed
+ESC #8          Fill screen with "E"
+ESC [ 2;Ps y    Invoke Test(s), where Ps is a decimal computed by adding the
+                numbers of the desired tests to be executed:
+
+                        1               Power up test
+                        2               Data loop back
+                        4               EIA modem control signal test
+                        8               Repeat test(s) indefinitely
+
+
+
+
+Article 4810 of alt.hackers:
+Newsgroups: alt.hackers
+From: Dom@sound.demon.co.uk (The Dark Stranger)
+Path: caen!math.ohio-state.edu!howland.reston.ans.net!pipex!uknet!demon!sound.demon.co.uk!sound.and.vision.bbs!vf10!VeXNeT!Dom
+Subject: Re: vt100 escapes
+Reply-To: Dom@sound.demon.co.uk
+References:  <2kp5c0$61c@samba.oit.unc.edu>
+Distribution: world
+X-Mailer: Sound & Vision BBS +44 (0)932-252-323
+Organization: Vex-Factor:10 Productions, London, England.
+Approved: I like to think so
+Lines: 145
+Date: Tue, 1 Mar 1994 19:13:36 +0000
+Message-ID: <#2377_vf10@sound.demon.co.uk>
+Sender: usenet@demon.co.uk
+
+In article <2kp5c0$61c@samba.oit.unc.edu> Michael.Lea@launchpad.unc.edu (Michael David Lea) writes:
+> Does anyone know where I can get a list of vt100 escape codes?  I found
+> one list but it doesn't seem to work.
+
+TERMINAL COMMANDS
+~~~~~~~~~~~~~~~~
+c		Reset
+[ ! p		Soft Reset
+# 8		Fill Screen with E's
+} 1 * 		Fill screen with * test
+} 2		Video attribute test display
+} 3		Character sets display test
+
+KEYBOARD COMMANDS
+~~~~~~~~~~~~~~~~
+[ 2 h		Keyboard locked
+[ 2 l		Keyboard unlocked
+[ ? 8 h		Autorepeat ON
+[ ? 8 l		Autorepeat OFF
+[ 0 q		Lights all off on keyboard
+[ * q		Light * on
+
+PROGRAMMABLE KEY COMMANDS
+~~~~~~~~~~~~~~~~~~~~~~~~
+! pk		Program a programmable key (local)
+@ pk		Program a programmable key (on-line)
+% pk		Transmit programmable key contents
+
+SCREEN FORMAT
+~~~~~~~~~~~~
+[ ? 3 h		132 Characters on
+[ ? 3 l		80 Characters on
+[ ? 4 h		Smooth Scroll on
+[ ? 4 l		Jump Scroll on
+[ *t ; *b r	Scrolling region selected, line *t to *b
+[ ? 5 h		Inverse video on
+[ ? 5 l		Normal video off
+[ ? 7 h		Wraparound ON
+[ ? 7 l		Wraparound OFF
+[ ? 75 h	Screen display ON
+[ ? 75 l	Screen display OFF
+
+CHARACTER SETS AND LABELS
+~~~~~~~~~~~~~~~~~~~~~~~~
+( A		British
+( B		North American ASCII set
+( C		Finnish
+( E		Danish or Norwegian
+( H		Swedish
+( K		German
+( Q		French Canadian
+( R		Flemish or French/Belgian
+( Y		Italian
+( Z		Spanish
+( 0		Line Drawing
+( 1		Alternative Character
+( 2		Alternative Line drawing
+( 4		Dutch
+( 5		Finnish
+( 6		Danish or Norwegian
+( 7		Swedish
+( =		Swiss (French or German)
+
+[Note all ( may be replaced with )]
+
+CHARACTER SIZE
+~~~~~~~~~~~~~
+# 1		Double ht, single width top half chars
+# 2		Double ht, single width lower half chars
+# 3 		Double ht, double width top half chars
+# 4		Double ht, double width lower half chars
+# 5		Single ht, single width chars
+# 6		Single ht, double width chars
+
+ATTRIBUTES AND FIELDS
+~~~~~~~~~~~~~~~~~~~~
+[ 0 m		Clear all character attributes
+[ 1 m		Alternate Intensity ON
+[ 4 m		Underline ON
+[ 5 m		Blink ON
+[ 7 m		Inverse video ON
+[ 22 m		Alternate Intensity OFF
+[ 24 m		Underline OFF
+[ 25 m		Blink OFF
+[ 27 m		Inverse Video OFF
+[ 0 }		Protected fields OFF
+[ 1 } 		Protected = Alternate Intensity
+[ 4 }		Protected = Underline
+[ 5 }		Protected = Blinking
+[ 7 }		Protected = Inverse
+[ 254 }		Protected = All attributes OFF
+
+CURSOR COMMANDS
+~~~~~~~~~~~~~~
+[ ? 25 l	Cursor OFF
+[ ? 25 h	Cursor ON
+[ ? 50 l	Cursor OFF
+[ ? 50 h	Cursor ON
+7		Save cursor position and character attributes
+8		Restore cursor position and character attributes
+D		Line feed
+E		Carriage return and line feed
+M		Reverse Line feed
+[ A		Cursor up one line
+[ B		Cursor down one line
+[ C		Cursor right one column
+[ D		Cursor left one column
+[ * A		Cursor up * lines
+[ * B		Cursor down * lines
+[ * C		Cursor right * columns
+[ * D		Cursor left * columns
+[ H		Cursor home
+[ *l ; *c H	Move cursor to line *l, column *c
+[ *l ; *c f	Move curosr to line *l, column *c
+Y nl nc 	Direct cursor addressing (line/column number)
+H		Tab set at present cursor position
+[ 0 g		Clear tab at present cursor position
+[ 3 g		Clear all tabs
+
+EDIT COMMANDS
+~~~~~~~~~~~~
+[ 4 h		Insert mode selected
+[ 4 l		Replacement mode selected
+[ ? 14 h	Immediate operation of ENTER key
+[ ? 14 l	Deferred operation of ENTER key
+[ ? 16 h	Edit selection immediate
+[ ? 16 l	Edit selection deffered
+[ P		Delete character from cursor position
+[ * P		Delete * chars from curosr right
+[ M		Delete 1 char from cursor position
+[ * M		Delete * lines from cursor line down
+[ J		Erase screen from cursor to end
+[ 1 J		Erase beginning of screen to cursor
+[ 2 J		Erase entire screen but do not move cursor
+[ K		Erase line from cursor to end
+[ 1 K		Erase from beginning of line to cursor
+[ 2 K		Erase entire line but do not move cursor
+[ L		Insert 1 line from cursor position
+[ * L		Insert * lines from cursor position

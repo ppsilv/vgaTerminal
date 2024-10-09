@@ -12,7 +12,7 @@ const uint8_t totalSpaceTab = 4;
 uint8_t lixo=0;
 extern VGA1BitI vga;
 extern Font myfont;
-Vt100 vt100term;
+//Vt100 vt100term;
 extern void myprintch(char str);
 extern void restartTimer0();
 extern bool toggle0;
@@ -21,7 +21,7 @@ extern bool toggle0;
 #define  VT100_OFF   0
 #define  VT100_ON    1
 
-uint8_t vt100state = VT100_OFF;
+uint8_t myvt100state = VT100_OFF;
 uint8_t cmd_complete= 0;
 uint8_t comando[4];
 
@@ -55,41 +55,67 @@ void Terminal::execCmdVt100()
 {
   if (comando[0] == '['){
     if(comando[1] == '2'){
-      if( comando[2] == 'J' ){
-        Serial.print("CLEAR SCREEN ");
+      if( comando[2] == 'J' ){  //Clear screen
+        vga.clear();
       }
-    }else if(comando[1] == 'H'){
-      Serial.print("Algum commando HHHHHHH...");
+    }else if(comando[1] == 'H'){  //Home possition
+        vga.setCursor( 0, 0);
+    }else if(comando[1] == '0'){  //Home possition
+        if(comando[2] == 'm'){
+          vga.setFrontGlobalColor(0,255,0);
+        }
+    }else if( (comando[1] == '4') && (comando[1] == '2') ){
+      vga.setFrontGlobalColor(255,0,0);
     }else if( (comando[1] == '4') && (comando[2] == '2') ){
-      Serial.print("Algum commando 42m...");  
+      vga.setFrontGlobalColor(0,255,0);
+    }else if( (comando[1] == '4') && (comando[3] == '2') ){
+      vga.setFrontGlobalColor(255,255,0);
+    }else if( (comando[1] == '4') && (comando[4] == '2') ){
+      vga.setFrontGlobalColor(0,0,255);
+    }else if( (comando[1] == '4') && (comando[5] == '2') ){
+      vga.setFrontGlobalColor(128,128,0);
+    }else if( (comando[1] == '4') && (comando[6] == '2') ){
+      vga.setFrontGlobalColor(0,128,255);
+    }else if( (comando[1] == '4') && (comando[7] == '2') ){
+      vga.setFrontGlobalColor(255,255,255);    
     }else
-          Serial.print("Nao conheco esse comando...\n");
+      Serial.print(comando[1]); 
+      Serial.print(comando[2]); 
+      //vga.print("|Nao conheco esse comando...\n");
   }
 }
 
-void Terminal::print(uint8_t ch)
+void Terminal::print(const char ch)
 {
-  vt100term.vt100_state(ch);
-}
-  /*
-  Serial.print(ch,16);
-  Serial.print("|");
-  if ( vt100state == VT100_ON ){
+  //vt100term.vt100_state(ch);
+
+  //Serial.print(ch);
+  if ( myvt100state == VT100_ON ){
     comando[cmd_complete] = ch;
     cmd_complete++;
     if ( cmd_complete == 3 ){
       cmd_complete = 0;
-      vt100state = VT100_OFF;  
+      myvt100state = VT100_OFF;  
       execCmdVt100();
     }
-    //return;
+    return;
   }
   if ( ch == 0x1B){
-    vt100state = VT100_ON;
+    myvt100state = VT100_ON;
     cmd_complete = 0;
-    //return;
+    return;
   }
-  
+  if( ch == 0x0A || ch == 0x0D ){
+    //Todo: Improve the manipulation of last line because 
+    //when cursor is on the lastline and the enter are 
+    //pressed the cursor goes beyound the lastline.
+    //vga.printCursor('C');
+    vga.print("\n");
+  }else{  
+    vga.print((const char )ch);
+  }
+
+  /*
   if( ch == 0x09 ){
     for(int i=0; i<totalSpaceTab; i++){
       vga.printCursor('C');
@@ -106,10 +132,11 @@ void Terminal::print(uint8_t ch)
     vga.print("\n");
   }else{
     vga.printCursor('C');
-    vga.print(ch);
+    vga.print((const char )ch);
   }
+  */
 }
-*/
+
 void Terminal::scroll(){
 
 }
@@ -151,7 +178,10 @@ void Terminal::run(){
     //if ( ch == 10 || ch == 13){
     //  Serial2.print('\n');
     //}else{
+      Serial.print(".");
       Serial.print(ch);
+      Serial.print("-");
+
       Serial2.print(ch);
     //}
   }  

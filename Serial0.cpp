@@ -24,10 +24,10 @@ TSerial0 * TSerial0::getInstance(){
 }
 //Caracter vem da serial e vai em direção ao terminal
 void onReceiveFunction(void) {
-  char b;
-  char available = Serial2.available();
+  unsigned char b;
+  unsigned char available = Serial2.available();
   while (available --) {
-    b=(char)Serial2.read();
+    b=(unsigned char)Serial2.read();
     terminal.print(b);
   }
 }
