@@ -34,7 +34,7 @@ extern void setupTimer();
 const uint8_t frontColors[] = {0x2,0x0,0x1,0x4,0x1,0x7,0x3};
 const uint8_t backColors[] = {0x0,0x7,0x0,0x6,0x7,0x0,0x4};
 
-char * versao = "0.1.00";
+char * versao = "1.0.00";
 char * screenMode = "640x400";
 int baudrate = serial0->getBaud() ;
 char * uartConfig = "8N1";

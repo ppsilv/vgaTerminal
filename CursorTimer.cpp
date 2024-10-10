@@ -20,12 +20,15 @@ portMUX_TYPE timerMux = portMUX_INITIALIZER_UNLOCKED;
 
 volatile bool toggle0;
 volatile bool toggled;
-
+volatile bool disable;
 //VGA Device
-extern VGA1BitI vga;
+//extern VGA1BitI vga;
 
 void ARDUINO_ISR_ATTR onTimer(){
   // Increment the counter and set the time of ISR
+  if (disable){
+    return;
+  }
   portENTER_CRITICAL_ISR(&timerMux);
   //isrCounter = isrCounter + 1;
   //lastIsrAt = millis();
@@ -53,6 +56,7 @@ void setupTimer() {
   // Set alarm to call onTimer function every second (value in microseconds).
   // Repeat the alarm (third parameter) with unlimited count = 0 (fourth parameter).
   timerAlarm(timer, 500000, true, 0);
+  disable = false;
 }
 
 bool getSemaforo()

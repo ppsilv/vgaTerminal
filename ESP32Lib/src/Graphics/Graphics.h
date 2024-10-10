@@ -398,30 +398,29 @@ class Graphics: public ImageDrawer, public InterfaceColor, public BufferLayout, 
 				else
 					dotMix(px + x, py + y, backColor);
 	}
-
-	virtual void drawChar1(int x, int y, int ch)
+	virtual void drawChar(int ch,bool clear)
 	{
-		if (!font)
-			return;
-		if (!font->valid(ch))
-			return;
-		const unsigned char *pix = &font->pixels[font->charWidth * font->charHeight * (ch - font->firstChar)];
-		for (int py = 0; py < font->charHeight; py++)
-			for (int px = 0; px < font->charWidth; px++)
-					dot(px + x, py + y, backColor);
-
+		if( clear ){
+			for (int py = 0; py < font->charHeight; py++)
+				for (int px = 0; px < font->charWidth; px++)
+					dotFast(px + cursorX, py + cursorY, backColor);
+		}else{
+			const unsigned char *pix = &font->pixels[font->charWidth * font->charHeight * (ch - font->firstChar)];
+			for (int py = 0; py < font->charHeight; py++)
+				for (int px = 0; px < font->charWidth; px++)
+					if (*(pix++))
+						dotFast(px + cursorX, py + cursorY, frontColor);
+					else
+						dotFast(px + cursorX, py + cursorY, backColor);
+		}
 	}
-	void printCursor(const char ch)
+	void printCursor(void)
 	{
-		char ch1 = '_';
-		if (!font)
-			return;
-		if ( ch == 'C'){
-			drawChar1(cursorX, cursorY, ch1);
-		}
-		else{
-			drawChar(cursorX, cursorY, ch);
-		}
+		drawChar('_',false);
+	}
+	void clearCursor(void)
+	{
+		drawChar('_',true);
 	}
 
 	void print(const char ch)
