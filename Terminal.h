@@ -3,8 +3,8 @@
 
 #define AZUL      0
 #define BRANCO    1
-#define AMARELO   2
-#define CIANO     3
+#define CIANO     2
+#define AMARELO   3
 #define MAGENTA   4
 #define VERMELHO  5
 #define VERDE     6

@@ -24,11 +24,11 @@ uint16_t myRED = vga.RGB(0,0,255);
 uint16_t myGREEN = vga.RGB(0,255,0);
 uint16_t myBLUE = vga.RGB(255,0,0);
 uint16_t myWHITE = vga.RGB(255, 255,255);
-uint16_t myYELLOW = vga.RGB(255,255,0);
-uint16_t myCYAN = vga.RGB(0,255,255);
+uint16_t myYELLOW = vga.RGB(0,255,255);
+uint16_t myCYAN = vga.RGB(255,255,0);
 uint16_t myMAGENTA = vga.RGB(255,0,255);
 uint16_t myBLACK = vga.RGB(0,0,0);
-uint16_t myCOLORS[7] = {myBLUE, myWHITE, myYELLOW, myCYAN, myMAGENTA, myRED, myGREEN};
+uint16_t myCOLORS[7] = {myBLUE, myWHITE, myCYAN, myYELLOW, myMAGENTA, myRED, myGREEN};
 
 
 //Terminal states
