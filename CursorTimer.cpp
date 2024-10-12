@@ -9,7 +9,7 @@
  This example code is in the public domain.
  */
 #include "Arduino.h"
-#include <ESP32Video.h>
+#include "esp32lib.h"
 
 hw_timer_t * timer = NULL;
 volatile SemaphoreHandle_t timerSemaphore;
@@ -20,22 +20,25 @@ portMUX_TYPE timerMux = portMUX_INITIALIZER_UNLOCKED;
 
 volatile bool toggle0;
 volatile bool toggled;
-volatile bool disable;
-//VGA Device
-//extern VGA1BitI vga;
+
+extern VGA3Bit vga;
 
 void ARDUINO_ISR_ATTR onTimer(){
   // Increment the counter and set the time of ISR
-  if (disable){
+  if (vga.getOnScroll()){
     return;
   }
   portENTER_CRITICAL_ISR(&timerMux);
   //isrCounter = isrCounter + 1;
   //lastIsrAt = millis();
-  if (toggle0 == true) 
+  if (toggle0 == true) {
     toggle0 = false;
-  else  
+    vga.clearCursor();
+  }
+  else{
     toggle0 = true;
+    vga.printCursor();
+  }
   portEXIT_CRITICAL_ISR(&timerMux);
   // Give a semaphore that we can check in the loop
   xSemaphoreGiveFromISR(timerSemaphore, NULL);
@@ -56,7 +59,7 @@ void setupTimer() {
   // Set alarm to call onTimer function every second (value in microseconds).
   // Repeat the alarm (third parameter) with unlimited count = 0 (fourth parameter).
   timerAlarm(timer, 500000, true, 0);
-  disable = false;
+
 }
 
 bool getSemaforo()
@@ -67,25 +70,3 @@ bool getSemaforo()
 
   return false;
 }
-/*
-void loopTimer()
-{
-  // If Timer has fired
-  if (xSemaphoreTake(timerSemaphore, 0) == pdTRUE){
-    uint32_t isrCount = 0, isrTime = 0;
-    // Read the interrupt count and time
-    portENTER_CRITICAL(&timerMux);
-    isrCount = isrCounter;
-    isrTime = lastIsrAt;
-    portEXIT_CRITICAL(&timerMux);
-    // Print it
-    //Serial.print("onTimer no. ");
-    //Serial.print(isrCount);
-    //Serial.print(" at ");
-    //Serial.print(isrTime);
-    //Serial.println(" ms");
-
-  }
-
-}
-*/

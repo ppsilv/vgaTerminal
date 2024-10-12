@@ -8,8 +8,6 @@
 //CircularBuffer<char, 255> buffer;
 TSerial0 * TSerial0::instance = 0;
 
-//VGA Device
-//extern VGA1BitI vga;
 //Terminal
 extern Terminal terminal;
 

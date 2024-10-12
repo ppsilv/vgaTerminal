@@ -2,7 +2,7 @@
 #define __SERIAL_H__
 #include <Arduino.h>
 #include <CircularBuffer.hpp>  //https://github.com/ppsilv/CircularBuffer
-#include <ESP32Video.h>
+
 
 /*
   Testado

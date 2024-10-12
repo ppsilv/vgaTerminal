@@ -1,10 +1,18 @@
 #ifndef __TERMINAL_H__
 #define __TERMINAL_H__
 
+#define AZUL      0
+#define BRANCO    1
+#define AMARELO   2
+#define CIANO     3
+#define MAGENTA   4
+#define VERMELHO  5
+#define VERDE     6
+
 
 class Terminal {
 	private:
-    const unsigned int alarme=5250;
+    const unsigned int alarme = 5250;
 		//parametros da tela
 		uint8_t		screenTotalChar; 	// contador de caracter na tela
 		uint8_t		totalRow;		// total de linhas da tela

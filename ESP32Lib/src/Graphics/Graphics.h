@@ -74,6 +74,7 @@ class Graphics: public ImageDrawer, public InterfaceColor, public BufferLayout, 
 	BufferGraphicsUnit **frontBuffer;
 	BufferGraphicsUnit **backBuffer;
 	bool autoScroll;
+	bool onScroll;
 	size_t sizeOfBufferUnit = sizeof(BufferGraphicsUnit);
 	int storageCoefficient = 1; //number of pixels in an BufferUnit variable
 	int defaultBufferValue = 0;
@@ -201,12 +202,12 @@ class Graphics: public ImageDrawer, public InterfaceColor, public BufferLayout, 
 	}
 	virtual BufferGraphicsUnit** allocateFrameBuffer(int xres, int yres, BufferGraphicsUnit value)
 	{
-		BufferGraphicsUnit** frame = (BufferGraphicsUnit **)malloc(yres * sizeof(BufferGraphicsUnit *));
+		BufferGraphicsUnit** frame = (BufferGraphicsUnit **)malloc(yres * sizeof(BufferGraphicsUnit *) );
 		if(!frame)
 			ERROR("Not enough memory for frame buffer");
 		for (int y = 0; y < yres; y++)
 		{
-			frame[y] = (BufferGraphicsUnit *)malloc(xres * sizeof(BufferGraphicsUnit));
+			frame[y] = (BufferGraphicsUnit *)malloc(xres * sizeof(BufferGraphicsUnit)+1000);
 			if(!frame[y])
 				ERROR("Not enough memory for frame buffer");
 			for (int x = 0; x < xres; x++)
@@ -308,6 +309,10 @@ class Graphics: public ImageDrawer, public InterfaceColor, public BufferLayout, 
 		currentFrameBuffer = (currentFrameBuffer + 1) % frameBufferCount;
 		frontBuffer = frameBuffers[currentFrameBuffer];
 		backBuffer = frameBuffers[(currentFrameBuffer + frameBufferCount - 1) % frameBufferCount];
+		Serial.print("yres * sizeof(BufferGraphicsUnit *).:");
+		Serial.println(yres * sizeof(BufferGraphicsUnit *));
+		//Serial.print("frameBufferCount...:");Serial.println(frameBufferCount);
+		//Serial.print("backBuffer.........:");Serial.println(backBuffer);
 	}
 
 	Graphics(int xres = 0, int yres = 0)
@@ -369,20 +374,12 @@ class Graphics: public ImageDrawer, public InterfaceColor, public BufferLayout, 
 		cursorY = y;
 	}
 
-	void setCursorBS()
+	void setCursorText(int x, int y)
 	{
-		Serial.println(cursorX);
-		if (cursorX == 0){
-			cursorY -= this->font->charHeight;
-			cursorX = 79*this->font->charWidth;
-		}else{
-			cursorX -= this->font->charWidth;
-		}
-		//cursorY += y;
-
-
-
+		cursorX = cursorBaseX = x * font->charWidth;
+		cursorY = y * font->charHeight;
 	}
+
 
 	virtual void drawChar(int x, int y, int ch)
 	{
@@ -398,6 +395,24 @@ class Graphics: public ImageDrawer, public InterfaceColor, public BufferLayout, 
 				else
 					dotMix(px + x, py + y, backColor);
 	}
+/*
+	void print(const char ch)
+	{
+		if (!font)
+			return;
+		if (font->valid(ch))
+			drawChar(cursorX, cursorY, ch);
+		else
+			drawChar(cursorX, cursorY, ' ');		
+		cursorX += cursorXIncrement;
+		if (cursorX + cursorXIncrement > xres)
+		{
+			cursorX = cursorBaseX;
+			cursorY += font->charHeight;;
+			if(autoScroll && ((cursorY + font->charHeight) > yres) )
+				scroll(cursorY + font->charHeight - yres, backColor);
+		}
+	}*/
 	virtual void drawChar(int ch,bool clear)
 	{
 		if( clear ){
@@ -418,47 +433,60 @@ class Graphics: public ImageDrawer, public InterfaceColor, public BufferLayout, 
 	{
 		drawChar('_',false);
 	}
+
 	void clearCursor(void)
 	{
 		drawChar('_',true);
+	}
+
+	void setCursorBS()
+	{
+		//Serial.println(cursorX);
+		if (cursorX == 0){
+			cursorY -= this->font->charHeight;
+			cursorX = 79*this->font->charWidth;
+		}else{
+			cursorX -= this->font->charWidth;
+		}
+		//cursorY += y;
 	}
 
 	void print(const char ch)
 	{
 		if (!font)
 			return;
-		if (font->valid(ch))
+		if (font->valid(ch)){
+			//Serial.print(" char ");Serial.print(ch);
 			drawChar(cursorX, cursorY, ch);
-		else
-			drawChar(cursorX, cursorY, ' ');		
-		cursorX += cursorXIncrement;
-		if (cursorX + cursorXIncrement > xres)
-		{
-			cursorX = cursorBaseX;
-			cursorY += cursorYIncrement;
-			if(autoScroll && cursorY + cursorYIncrement > yres)
-				scroll(cursorY + cursorYIncrement - yres, backColor);
 		}
-	}
-
-	void print(unsigned char ch)
-	{
-		if (!font)
-			return;
-		if (font->valid(ch))
-			drawChar(cursorX, cursorY, ch);
-		else
+		else{
+			//Serial.print(" char ");Serial.print(ch);
 			drawChar(cursorX, cursorY, ' ');
+		}
 		cursorX += cursorXIncrement;
-		if (cursorX + cursorXIncrement > xres)
+
+		if ( (cursorX + cursorXIncrement) > xres )
 		{
-			cursorX = cursorBaseX;
 			cursorY += cursorYIncrement;
-			if(autoScroll && cursorY + cursorYIncrement > yres)
-				scroll(cursorY + cursorYIncrement - yres, backColor);
+			cursorX = cursorBaseX;
+			if( cursorY > yres ){
+				cursorY = yres-cursorYIncrement;
+			}
+		}
+		if ( (cursorY + cursorYIncrement) > yres  )
+		{
+			if(autoScroll && ( (cursorY + cursorYIncrement) > yres) ){
+				onScroll = true;
+				//Serial.print("\nCursorY ");Serial.print(cursorY);
+				//Serial.print(" yres ");Serial.print(yres);
+				//Serial.print(" cursorYIncrement ");Serial.print(cursorYIncrement);
+				scroll((cursorY - yres)+cursorYIncrement, backColor);
+			}
 		}
 	}
-
+	bool getOnScroll(){
+		return onScroll;
+	}
 	void println(const char ch)
 	{
 		print(ch);
@@ -874,6 +902,16 @@ class Graphics: public ImageDrawer, public InterfaceColor, public BufferLayout, 
 
 	virtual void scroll(int dy, Color color)
 	{
+		static int dyA;
+		dyA = dy;
+		//lixo 1 some primeiro char
+		if( dy == 2 && dyA != 2 )
+			dy = 8;
+		else if( dy == 4 )
+			dy = 8;
+		else if( dy > 0 )
+			dy = 9 - dy;
+
 		if(dy > 0)
 		{
 			for(int d = 0; d < dy; d++)

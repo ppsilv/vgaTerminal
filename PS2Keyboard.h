@@ -1,6 +1,7 @@
 #ifndef __PS2KEYBOARD_H__
 #define __PS2KEYBOARD_H__
 #include <cstdint>
+
 // Every call to read() returns a single byte for each
 // keystroke.  These configure what byte will be returned
 // for each "special" key.  To ignore a key, use zero.

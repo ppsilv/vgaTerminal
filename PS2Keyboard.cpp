@@ -23,6 +23,7 @@ const PS2Keymap_t *keymap=NULL;
 extern void hnd(void);
 
 PS2Keyboard* PS2Keyboard::keyboard0Ptr;
+/*
 PS2Keyboard* PS2Keyboard::keyboard1Ptr;
 PS2Keyboard* PS2Keyboard::keyboard2Ptr;
 PS2Keyboard* PS2Keyboard::keyboard3Ptr;                              
@@ -30,7 +31,7 @@ PS2Keyboard* PS2Keyboard::keyboard4Ptr;
 PS2Keyboard* PS2Keyboard::keyboard5Ptr;
 PS2Keyboard* PS2Keyboard::keyboard6Ptr;
 PS2Keyboard* PS2Keyboard::keyboard7Ptr;
-
+*/
 const char chrsNS[]={
     0,    249,  0,    245,  243,  241,  242,  252,  0,    250,  248,  246,  244,  '\t', '`',  0,
     0,    0,    0,    0,    0,    'q',  '1',  0,    0,    0,    'z',   's',  'a',  'w',  '2',  0,
@@ -71,7 +72,7 @@ static volatile uint8_t head, tail;
 
 
 static volatile uint8_t SendByteState;
-static volatile byte SendBits[10];
+static volatile byte    SendBits[10];
 static volatile uint8_t disableisr;
 static volatile uint8_t fulldisableisr;
 static volatile uint16_t waitcounter;
@@ -112,7 +113,7 @@ void PS2Keyboard::SendByte(byte b)
 
 	SendBits[9] = GetParity(b) == 0x1 ? 0x0 : 0x1;
 
-	SendByteState = 0;
+	SendByteState  = 0;
 	fulldisableisr = 1;
 	digitalWrite(TransistorIRQPin, 1);
 	delayMicroseconds(100);
@@ -228,7 +229,8 @@ byte PS2Keyboard::GetCharcode()
 }
 //void KeyboardISR() //FALLING EDGE
 //void ICACHE_RAM_ATTR PS2Keyboard::interruptHandler() 
-void IRAM_ATTR PS2Keyboard::interruptHandler(){
+void IRAM_ATTR PS2Keyboard::interruptHandler()
+{
 	static uint8_t bitcount = 0;
 	static uint8_t incoming = 0;
 	static uint32_t prev_ms = 0;
@@ -325,51 +327,51 @@ void PS2Keyboard::begin()
   keymap = &PS2Keymap_US;
  
     if (keyboard0Ptr==nullptr) {
-        //Serial.println("keyboard0Ptr");
+        Serial.println("keyboard0Ptr");
         keyboard0Ptr = this;
         attachInterrupt(digitalPinToInterrupt(IRQPin), kbdInterrupt0, FALLING);
-    }
+    }/*
     else if (keyboard1Ptr==nullptr) {
-        //Serial.println("keyboard1Ptr");
+        Serial.println("keyboard1Ptr");
         keyboard1Ptr = this;
         attachInterrupt(digitalPinToInterrupt(IRQPin), kbdInterrupt1, FALLING);
     }
     else if (keyboard2Ptr==nullptr) {
-        //Serial.println("keyboard2Ptr");
+        Serial.println("keyboard2Ptr");
         keyboard2Ptr = this;
         attachInterrupt(digitalPinToInterrupt(IRQPin), kbdInterrupt2, FALLING);
     }
     else if (keyboard3Ptr==nullptr) {
-        //Serial.println("keyboard3Ptr");
+        Serial.println("keyboard3Ptr");
         keyboard3Ptr = this;
         attachInterrupt(digitalPinToInterrupt(IRQPin), kbdInterrupt3, FALLING);
     }
     else if (keyboard4Ptr==nullptr) {
-        //Serial.println("keyboard4Ptr");
+        Serial.println("keyboard4Ptr");
         keyboard4Ptr = this;
         attachInterrupt(digitalPinToInterrupt(IRQPin), kbdInterrupt4, FALLING);
     }
     else if (keyboard5Ptr==nullptr) {
-        //Serial.println("keyboard5Ptr");
+        Serial.println("keyboard5Ptr");
         keyboard5Ptr = this;
         attachInterrupt(digitalPinToInterrupt(IRQPin), kbdInterrupt5, FALLING);
     }
     else if (keyboard6Ptr==nullptr) {
-        //Serial.println("keyboard6Ptr");
+        Serial.println("keyboard6Ptr");
         keyboard6Ptr = this;
         attachInterrupt(digitalPinToInterrupt(IRQPin), kbdInterrupt6, FALLING);
     }
     else if (keyboard7Ptr==nullptr) {
-        //Serial.println("keyboard7Ptr");
+        Serial.println("keyboard7Ptr");
         keyboard7Ptr = this;
         attachInterrupt(digitalPinToInterrupt(IRQPin), kbdInterrupt7, FALLING);
-    }
+    }*/
   
 }
 
 void ICACHE_RAM_ATTR PS2Keyboard::kbdInterrupt0() {
     keyboard0Ptr->interruptHandler();
-}
+}/*
 void ICACHE_RAM_ATTR PS2Keyboard::kbdInterrupt1() {
     keyboard1Ptr->interruptHandler();
 }
@@ -390,7 +392,7 @@ void ICACHE_RAM_ATTR PS2Keyboard::kbdInterrupt6() {
 }
 void ICACHE_RAM_ATTR PS2Keyboard::kbdInterrupt7() {
     keyboard7Ptr->interruptHandler();
-}
+}*/
 
 PS2Keyboard::~PS2Keyboard(){
   detachInterrupt(IRQPin);

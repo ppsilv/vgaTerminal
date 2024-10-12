@@ -9,7 +9,7 @@
 		https://github.com/bitluni
 		http://bitluni.net
 */
-
+#ifdef MERDA_DE_AUDIO
 
 #ifdef ESP8266
 #include "AudioSystem.h"
@@ -78,5 +78,5 @@ void IRAM_ATTR timerInterrupt(AudioOutput *audioOutput)
       WRITE_PERI_REG(I2S_CONF_SIGLE_DATA_REG(0), audioOutput->audioSystem->nextSample() << 24);
   }
 }  
-
+#endif
 #endif
