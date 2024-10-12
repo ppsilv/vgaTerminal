@@ -70,3 +70,26 @@ bool getSemaforo()
 
   return false;
 }
+
+volatile int timeCursor=0;
+const int timeoutCursor=1000;
+
+
+void setupCursor(){
+  timeCursor = millis();
+  
+}
+
+void treatCursor(){
+    if( millis() > (timeCursor + timeoutCursor)){
+      timeCursor = millis();
+      if (toggle0 == true) {
+        toggle0 = false;
+        vga.clearCursor();
+      }
+      else{
+        toggle0 = true;
+        vga.printCursor();
+      }
+    }
+}

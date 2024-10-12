@@ -112,7 +112,6 @@ void Terminal::execCmdVt100()
   }
 }
 
-extern volatile bool disable;
 void Terminal::print(const char ch)
 {
   //vt100term.vt100_state(ch);
@@ -159,6 +158,7 @@ void Terminal::print(const char ch)
   }else if( ch == 0x7F ){
     vga.setCursorBS();
   }else{
+    vga.clearCursor();
     vga.print((const char )ch);
     lastChar = ch;
   }

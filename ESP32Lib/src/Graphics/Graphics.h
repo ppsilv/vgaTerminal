@@ -395,38 +395,21 @@ class Graphics: public ImageDrawer, public InterfaceColor, public BufferLayout, 
 				else
 					dotMix(px + x, py + y, backColor);
 	}
-/*
-	void print(const char ch)
-	{
-		if (!font)
-			return;
-		if (font->valid(ch))
-			drawChar(cursorX, cursorY, ch);
-		else
-			drawChar(cursorX, cursorY, ' ');		
-		cursorX += cursorXIncrement;
-		if (cursorX + cursorXIncrement > xres)
-		{
-			cursorX = cursorBaseX;
-			cursorY += font->charHeight;;
-			if(autoScroll && ((cursorY + font->charHeight) > yres) )
-				scroll(cursorY + font->charHeight - yres, backColor);
-		}
-	}*/
+
 	virtual void drawChar(int ch,bool clear)
 	{
 		if( clear ){
 			for (int py = 0; py < font->charHeight; py++)
 				for (int px = 0; px < font->charWidth; px++)
-					dotFast(px + cursorX, py + cursorY, backColor);
+					dot(px + cursorX, py + cursorY, backColor);
 		}else{
 			const unsigned char *pix = &font->pixels[font->charWidth * font->charHeight * (ch - font->firstChar)];
 			for (int py = 0; py < font->charHeight; py++)
 				for (int px = 0; px < font->charWidth; px++)
 					if (*(pix++))
-						dotFast(px + cursorX, py + cursorY, frontColor);
+						dot(px + cursorX, py + cursorY, frontColor);
 					else
-						dotFast(px + cursorX, py + cursorY, backColor);
+						dot(px + cursorX, py + cursorY, backColor);
 		}
 	}
 	void printCursor(void)

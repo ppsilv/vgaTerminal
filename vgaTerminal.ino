@@ -60,6 +60,8 @@ void header()
 	vga.print("Free memory.....: ");vga.println((int)heap_caps_get_free_size(MALLOC_CAP_DEFAULT));
   vga.print("********************************************************************************\n");  
 }
+extern void setupCursor();
+extern void treatCursor();
 
 void setup()
 {
@@ -100,11 +102,12 @@ void setup()
 
   //Print terminal header
   header();
-
+  setupCursor();
 }
 
 void loop()
 {
   terminal.run();  
   keyboard.verifyStatus();
+  treatCursor();
 }
