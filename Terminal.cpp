@@ -75,7 +75,8 @@ void Terminal::execCmdVt100()
         myvt100state = VT100_OFF;  
       }
     }else if(comando[1] == 'H'){  //Home possition
-        vga.setCursor( 0, 0);
+        Serial.print("Posicionando o cursor a tela...\n");
+        vga.setCursorText( 0, 0);
         cmd_complete = 0;
         myvt100state = VT100_OFF;  
     }else if(comando[1] == '0'){  //Home possition
@@ -85,26 +86,20 @@ void Terminal::execCmdVt100()
           cmd_complete = 0;
           myvt100state = VT100_OFF;  
         }
+      
     }else if( (comando[1] == '4') && (comando[2] == '1') ){
       vga.setTextColor(myCOLORS[VERMELHO]);             
-      //vga.setFrontGlobalColor(0,0,255);
     }else if( (comando[1] == '4') && (comando[2] == '2') ){
       vga.setTextColor(myCOLORS[VERDE]);             
-      //vga.setFrontGlobalColor(0,255,0);
     }else if( (comando[1] == '4') && (comando[2] == '3') ){
       vga.setTextColor(myCOLORS[AMARELO]);             
-      //vga.setFrontGlobalColor(255,255,0);
     }else if( (comando[1] == '4') && (comando[2] == '4') ){
       vga.setTextColor(myCOLORS[AZUL]);             
-      //vga.setFrontGlobalColor(0,0,255);
     }else if( (comando[1] == '4') && (comando[2] == '5') ){
-      vga.setTextColor(myCOLORS[CIANO]);             
-      //vga.setFrontGlobalColor(0,128,128);
-    }else if( (comando[1] == '4') && (comando[2] == '6') ){
       vga.setTextColor(myCOLORS[MAGENTA]);             
-     // vga.setFrontGlobalColor(128,128,0);
+    }else if( (comando[1] == '4') && (comando[2] == '6') ){
+      vga.setTextColor(myCOLORS[CIANO]);             
     }else if( (comando[1] == '4') && (comando[2] == '7') ){
-      //vga.setFrontGlobalColor(255,255,255);    
       vga.setTextColor(myCOLORS[BRANCO]);             
     }else
       Serial.print(""); 
@@ -114,9 +109,14 @@ void Terminal::execCmdVt100()
 
 void Terminal::print(const char ch)
 {
-  //vt100term.vt100_state(ch);
   static char lastChar;
-  Serial.print(ch);
+
+  if ((ch == 0xd ) || (ch == 0xA)  ){
+    Serial.print(ch);
+  }else if ( ch > 31 && ch < 128 ){
+    Serial.print(ch);
+  }else
+    Serial.print('.');
   //Serial.print("|");
   if ( myvt100state == VT100_ON ){
     //Serial.print(ch);
@@ -146,10 +146,10 @@ void Terminal::print(const char ch)
       Fiz essa gambiarra pois estou de saco cheio do codigo
       ruim do bitluni. Eita codigo porco.
     */
-    if( lastChar != 0x0D){
+  //  if( lastChar != 0x0D){
       vga.print("\n");
-    }
-    lastChar = 0x0D;
+  //  }
+  //  lastChar = 0x0D;
 
   }else if( ch == 0x09 ){
     for(int i=0; i<totalSpaceTab; i++){
@@ -166,7 +166,7 @@ void Terminal::print(const char ch)
 
 void Terminal::showCursorCursorStatus(){
   if( cursorStatus == true ){
-    vga.println("OFF");
+    vga.println("ON");
   }else{
     vga.println("OFF");
   }

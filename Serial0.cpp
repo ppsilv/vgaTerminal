@@ -29,9 +29,10 @@ TSerial0 * TSerial0::getInstance(){
 void onReceiveFunction(void) {
   unsigned char b;
   unsigned char available = Serial2.available();
-  while (available --) {
+  while (available) {
     b=(unsigned char)Serial2.read();
     terminal.print(b);
+    --available;
   }
 }
 
