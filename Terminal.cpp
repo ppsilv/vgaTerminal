@@ -4,6 +4,7 @@
 #include "Terminal.h"
 #include "PS2Keyboard.h"
 #include "Serial0.h"
+#include "vt100.h"
 //#include "CodePage437_8x8.h"
 //#include "Vt100.h"
 
@@ -13,31 +14,26 @@ const uint8_t totalSpaceTab = 4;
 uint8_t lixo = 0;
 //VGA1BitI vga;
 extern VGA3Bit vga;
+//VT100
+vt100 vt100term;
 
 extern Font myfont;
-//Vt100 vt100term;
+
 extern void myprintch(char str);
 extern void restartTimer0();
 extern bool toggle0;
 
-uint16_t myRED = vga.RGB(0,0,255);
-uint16_t myGREEN = vga.RGB(0,255,0);
-uint16_t myBLUE = vga.RGB(255,0,0);
-uint16_t myWHITE = vga.RGB(255, 255,255);
-uint16_t myYELLOW = vga.RGB(0,255,255);
-uint16_t myCYAN = vga.RGB(255,255,0);
-uint16_t myMAGENTA = vga.RGB(255,0,255);
-uint16_t myBLACK = vga.RGB(0,0,0);
-uint16_t myCOLORS[7] = {myBLUE, myWHITE, myCYAN, myYELLOW, myMAGENTA, myRED, myGREEN};
+//uint16_t myRED = vga.RGB(0,0,255);
+//uint16_t myGREEN = vga.RGB(0,255,0);
+//uint16_t myBLUE = vga.RGB(255,0,0);
+//uint16_t myWHITE = vga.RGB(255, 255,255);
+//uint16_t myYELLOW = vga.RGB(0,255,255);
+//uint16_t myCYAN = vga.RGB(255,255,0);
+//uint16_t myMAGENTA = vga.RGB(255,0,255);
+//uint16_t myBLACK = vga.RGB(0,0,0);
+//uint16_t myCOLORS[7] = {myBLUE, myWHITE, myCYAN, myYELLOW, myMAGENTA, myRED, myGREEN};
 
 
-//Terminal states
-#define  VT100_OFF   0
-#define  VT100_ON    1
-
-uint8_t myvt100state = VT100_OFF;
-uint8_t cmd_complete = 0;
-uint8_t comando[4];
 
 Terminal::Terminal(){
 		screenTotalChar = 0; 	// contador de caracter na tela
@@ -64,12 +60,13 @@ void Terminal::println(){
 }
 extern bool getSemaforo();
 extern portMUX_TYPE timerMux;
-
+/*
 void Terminal::execCmdVt100()
 {
   if (comando[0] == '['){
     if(comando[1] == '2'){
       if( comando[2] == 'J' ){  //Clear screen
+        Serial.print("Limpando a tela...\n");
         vga.clear();
         cmd_complete = 0;
         myvt100state = VT100_OFF;  
@@ -81,12 +78,11 @@ void Terminal::execCmdVt100()
         myvt100state = VT100_OFF;  
     }else if(comando[1] == '0'){  //Home possition
         if(comando[2] == 'm'){
-          //vga.setFrontGlobalColor(0,255,0);
+          Serial.print("Limpando configuracao...\n");
           vga.setTextColor(myCOLORS[VERDE]);             
           cmd_complete = 0;
           myvt100state = VT100_OFF;  
-        }
-      
+        }      
     }else if( (comando[1] == '4') && (comando[2] == '1') ){
       vga.setTextColor(myCOLORS[VERMELHO]);             
     }else if( (comando[1] == '4') && (comando[2] == '2') ){
@@ -106,51 +102,29 @@ void Terminal::execCmdVt100()
       //vga.print("|Nao conheco esse comando...\n");
   }
 }
-
+*/
 void Terminal::print(const char ch)
 {
-  static char lastChar;
-
+/******************************************************/    
+//      DEBUG DEBUG DEBUG DEBUG
   if ((ch == 0xd ) || (ch == 0xA)  ){
     Serial.print(ch);
   }else if ( ch > 31 && ch < 128 ){
     Serial.print(ch);
   }else
     Serial.print('.');
-  //Serial.print("|");
-  if ( myvt100state == VT100_ON ){
-    //Serial.print(ch);
-    comando[cmd_complete] = ch;
-    cmd_complete++;
-    if ( cmd_complete > 3 && ch == 'm' ){
-      cmd_complete = 0;
-      myvt100state = VT100_OFF;  
-    }
-    if ( cmd_complete == 3 ){
-      execCmdVt100();
-    }
+/******************************************************/    
+  if( vt100term.execCmdVt100(ch) ){
     return;
   }
-  if ( ch == 0x1B){
-    myvt100state = VT100_ON;
-    cmd_complete = 0;
-    return;
-  }
+
   if( ch == 0x0A ){
 
   }else if ( ch == 0x0D ){
     //Todo: Improve the manipulation of last line because 
     //when cursor is on the lastline and the enter are 
     //pressed the cursor goes beyound the lastline.
-    /*
-      Fiz essa gambiarra pois estou de saco cheio do codigo
-      ruim do bitluni. Eita codigo porco.
-    */
-  //  if( lastChar != 0x0D){
-      vga.print("\n");
-  //  }
-  //  lastChar = 0x0D;
-
+    vga.print("\n");
   }else if( ch == 0x09 ){
     for(int i=0; i<totalSpaceTab; i++){
       vga.print(' ');   
@@ -160,7 +134,6 @@ void Terminal::print(const char ch)
   }else{
     vga.clearCursor();
     vga.print((const char )ch);
-    lastChar = ch;
   }
 }
 
