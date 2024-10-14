@@ -67,7 +67,8 @@ void setup()
 {
   Serial.begin(115200);
 	//initializing vga at the specified pins
-	vga.init(vga.MODE640x350, redPin, greenPin, bluePin, hsyncPin, vsyncPin);
+//	vga.init(vga.MODE640x350, redPin, greenPin, bluePin, hsyncPin, vsyncPin);
+	vga.init(vga.MODE320x200, redPin, greenPin, bluePin, hsyncPin, vsyncPin);
 
   //vga.setResolution(640,  200);
 	//selecting the font

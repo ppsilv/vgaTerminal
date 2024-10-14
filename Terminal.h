@@ -24,8 +24,8 @@ class Terminal {
 		uint16_t	totalChar;	//total de caractere atualmente na tela
 		uint8_t		bgcolor;	//cor de fundo da tela
 		uint8_t		fgcolor;	//cod do texto
-		bool cursorStatus;
     unsigned long future;
+		bool cursorStatus;
 	
 	public:
         Terminal();
@@ -41,6 +41,14 @@ class Terminal {
     void execCmdVt100();
 		//escreve uma linha de estado no rodapé da tela
 		void printStatus();
+
+    bool getCursorStatus(){
+      return cursorStatus;
+    }
+    void setCursorStatus(bool status){
+      cursorStatus = status;
+    }
+
 };
 
 #endif

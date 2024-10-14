@@ -23,8 +23,6 @@ extern void myprintch(char str);
 extern void restartTimer0();
 extern bool toggle0;
 
-bool lastChar = false;
-
 Terminal::Terminal(){
 		screenTotalChar = 0; 	// contador de caracter na tela
 		totalRow = 0;		// total de linhas da tela
@@ -67,27 +65,22 @@ void Terminal::print(const char ch)
   }
 
   if( ch == 0x0A ){
-        lastChar = true;
+    
   }else if ( ch == 0x0D ){
-    //Todo: Improve the manipulation of last line because 
-    //when cursor is on the lastline and the enter are 
-    //pressed the cursor goes beyound the lastline.
-      if( lastChar ){
-         return; 
-      } else{
-        lastChar = true;
-      } 
-    vga.print("\n");
+    vga.clearCursor();
+    vga.print('\n');
   }else if( ch == 0x09 ){
     for(int i=0; i<totalSpaceTab; i++){
+      vga.clearCursor();
       vga.print(' ');   
     }
   }else if( ch == 0x7F ){
     vga.setCursorBS();
   }else{
+      setCursorStatus(false);
       vga.clearCursor();
       vga.print((const char )ch);
-      lastChar = false;
+      setCursorStatus(true);
   }
 }
 

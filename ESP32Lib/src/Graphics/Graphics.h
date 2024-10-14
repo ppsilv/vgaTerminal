@@ -74,7 +74,7 @@ class Graphics: public ImageDrawer, public InterfaceColor, public BufferLayout, 
 	BufferGraphicsUnit **frontBuffer;
 	BufferGraphicsUnit **backBuffer;
 	bool autoScroll;
-	bool onScroll;
+	//bool onScroll;
 	size_t sizeOfBufferUnit = sizeof(BufferGraphicsUnit);
 	int storageCoefficient = 1; //number of pixels in an BufferUnit variable
 	int defaultBufferValue = 0;
@@ -438,15 +438,19 @@ class Graphics: public ImageDrawer, public InterfaceColor, public BufferLayout, 
 	{
 		if (!font)
 			return;
-		if (font->valid(ch)){
-			//Serial.print(" char ");Serial.print(ch);
+
+		if(ch == '\n')
+		{
+			cursorX = 0;//cursorBaseX;
+			cursorY += cursorYIncrement;
+		}
+		else if (font->valid(ch)){
 			drawChar(cursorX, cursorY, ch);
+			cursorX += cursorXIncrement;
 		}
 		else{
-			//Serial.print(" char ");Serial.print(ch);
 			drawChar(cursorX, cursorY, ' ');
 		}
-		cursorX += cursorXIncrement;
 
 		if ( (cursorX + cursorXIncrement) > xres )
 		{
@@ -459,7 +463,7 @@ class Graphics: public ImageDrawer, public InterfaceColor, public BufferLayout, 
 		if ( (cursorY + cursorYIncrement) > yres  )
 		{
 			if(autoScroll && ( (cursorY + cursorYIncrement) > yres) ){
-				onScroll = true;
+				//onScroll = true;
 				//Serial.print("\nCursorY ");Serial.print(cursorY);
 				//Serial.print(" yres ");Serial.print(yres);
 				//Serial.print(" cursorYIncrement ");Serial.print(cursorYIncrement);
@@ -467,9 +471,9 @@ class Graphics: public ImageDrawer, public InterfaceColor, public BufferLayout, 
 			}
 		}
 	}
-	bool getOnScroll(){
-		return onScroll;
-	}
+	//bool getOnScroll(){
+	//	return onScroll;
+	//}
 	void println(const char ch)
 	{
 		print(ch);
@@ -482,13 +486,7 @@ class Graphics: public ImageDrawer, public InterfaceColor, public BufferLayout, 
 			return;
 		while (*str)
 		{
-			if(*str == '\n')
-			{
-				cursorX = cursorBaseX;
-				cursorY += cursorYIncrement;
-			}
-			else
-				print(*str);
+			print(*str);
 			str++;
 		}
 	}
@@ -885,15 +883,16 @@ class Graphics: public ImageDrawer, public InterfaceColor, public BufferLayout, 
 
 	virtual void scroll(int dy, Color color)
 	{
-		static int dyA;
-		dyA = dy;
+		//static int dyA;
+		//dyA = dy;
 		//lixo 1 some primeiro char
-		if( dy == 2 && dyA != 2 )
-			dy = 8;
-		else if( dy == 4 )
-			dy = 8;
-		else if( dy > 0 )
-			dy = 9 - dy;
+		//if( dy == 2 && dyA != 2 )
+		//	dy = 8;
+		//else if( dy == 4 )
+		//	dy = 8;
+		//else if( dy > 0 )
+		//	dy = 9 - dy;
+		//cursorY -= font->charHeight;
 
 		if(dy > 0)
 		{
@@ -905,22 +904,24 @@ class Graphics: public ImageDrawer, public InterfaceColor, public BufferLayout, 
 					backBuffer[i] = backBuffer[i + 1];
 				}
 				backBuffer[yres - 1] = l;
-				xLine(0, xres, yres - 1, color);
+				//xLine(0, xres-font->charWidth, yres - 1, color);
+				xLine(0, xres , yres - 1, color);
 			}
 		}
-		else
-		{
-			for(int d = 0; d < -dy; d++)
-			{
-				BufferGraphicsUnit *l = backBuffer[yres - 1];
-				for(int i = yres - 1; i > 0; i--)
-				{
-					backBuffer[i] = backBuffer[i - 1];
-				}
-				backBuffer[0] = l;
-				xLine(0, xres, 0, color);
-			}
-		}
+		//else
+		//{
+		//	for(int d = 0; d < -dy; d++)
+		//	{
+		//		BufferGraphicsUnit *l = backBuffer[yres - 1];
+		//		for(int i = yres - 1; i > 0; i--)
+		//		{
+		//			backBuffer[i] = backBuffer[i - 1];
+		//		}
+		//		backBuffer[0] = l;
+		//		xLine(0, xres, 0, color);
+		//	}
+		//}
+		//cursorY -= font->charHeight;
 		cursorY -= dy;
 	}
 
