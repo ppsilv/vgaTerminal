@@ -23,17 +23,7 @@ extern void myprintch(char str);
 extern void restartTimer0();
 extern bool toggle0;
 
-//uint16_t myRED = vga.RGB(0,0,255);
-//uint16_t myGREEN = vga.RGB(0,255,0);
-//uint16_t myBLUE = vga.RGB(255,0,0);
-//uint16_t myWHITE = vga.RGB(255, 255,255);
-//uint16_t myYELLOW = vga.RGB(0,255,255);
-//uint16_t myCYAN = vga.RGB(255,255,0);
-//uint16_t myMAGENTA = vga.RGB(255,0,255);
-//uint16_t myBLACK = vga.RGB(0,0,0);
-//uint16_t myCOLORS[7] = {myBLUE, myWHITE, myCYAN, myYELLOW, myMAGENTA, myRED, myGREEN};
-
-
+bool lastChar = false;
 
 Terminal::Terminal(){
 		screenTotalChar = 0; 	// contador de caracter na tela
@@ -60,49 +50,7 @@ void Terminal::println(){
 }
 extern bool getSemaforo();
 extern portMUX_TYPE timerMux;
-/*
-void Terminal::execCmdVt100()
-{
-  if (comando[0] == '['){
-    if(comando[1] == '2'){
-      if( comando[2] == 'J' ){  //Clear screen
-        Serial.print("Limpando a tela...\n");
-        vga.clear();
-        cmd_complete = 0;
-        myvt100state = VT100_OFF;  
-      }
-    }else if(comando[1] == 'H'){  //Home possition
-        Serial.print("Posicionando o cursor a tela...\n");
-        vga.setCursorText( 0, 0);
-        cmd_complete = 0;
-        myvt100state = VT100_OFF;  
-    }else if(comando[1] == '0'){  //Home possition
-        if(comando[2] == 'm'){
-          Serial.print("Limpando configuracao...\n");
-          vga.setTextColor(myCOLORS[VERDE]);             
-          cmd_complete = 0;
-          myvt100state = VT100_OFF;  
-        }      
-    }else if( (comando[1] == '4') && (comando[2] == '1') ){
-      vga.setTextColor(myCOLORS[VERMELHO]);             
-    }else if( (comando[1] == '4') && (comando[2] == '2') ){
-      vga.setTextColor(myCOLORS[VERDE]);             
-    }else if( (comando[1] == '4') && (comando[2] == '3') ){
-      vga.setTextColor(myCOLORS[AMARELO]);             
-    }else if( (comando[1] == '4') && (comando[2] == '4') ){
-      vga.setTextColor(myCOLORS[AZUL]);             
-    }else if( (comando[1] == '4') && (comando[2] == '5') ){
-      vga.setTextColor(myCOLORS[MAGENTA]);             
-    }else if( (comando[1] == '4') && (comando[2] == '6') ){
-      vga.setTextColor(myCOLORS[CIANO]);             
-    }else if( (comando[1] == '4') && (comando[2] == '7') ){
-      vga.setTextColor(myCOLORS[BRANCO]);             
-    }else
-      Serial.print(""); 
-      //vga.print("|Nao conheco esse comando...\n");
-  }
-}
-*/
+
 void Terminal::print(const char ch)
 {
 /******************************************************/    
@@ -119,11 +67,16 @@ void Terminal::print(const char ch)
   }
 
   if( ch == 0x0A ){
-
+        lastChar = true;
   }else if ( ch == 0x0D ){
     //Todo: Improve the manipulation of last line because 
     //when cursor is on the lastline and the enter are 
     //pressed the cursor goes beyound the lastline.
+      if( lastChar ){
+         return; 
+      } else{
+        lastChar = true;
+      } 
     vga.print("\n");
   }else if( ch == 0x09 ){
     for(int i=0; i<totalSpaceTab; i++){
@@ -132,8 +85,9 @@ void Terminal::print(const char ch)
   }else if( ch == 0x7F ){
     vga.setCursorBS();
   }else{
-    vga.clearCursor();
-    vga.print((const char )ch);
+      vga.clearCursor();
+      vga.print((const char )ch);
+      lastChar = false;
   }
 }
 
