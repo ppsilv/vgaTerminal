@@ -67,9 +67,9 @@ void setup()
 {
   Serial.begin(115200);
 	//initializing vga at the specified pins
-  if ( memcpy(screenMode,"640x400",7 ) ){
+  if ( memcmp(screenMode,"640x400",7 ) == 0 ){
 	  vga.init(vga.MODE640x350, redPin, greenPin, bluePin, hsyncPin, vsyncPin);
-  }else if ( memcpy(screenMode,"320x200",7 ) ){
+  }else if ( memcmp(screenMode,"320x200",7 ) == 0 ){
     vga.init(vga.MODE320x200, redPin, greenPin, bluePin, hsyncPin, vsyncPin);
   }
   //vga.setResolution(640,  200);
