@@ -35,7 +35,7 @@ extern void setupTimer();
 const uint8_t frontColors[] = {0x2,0x0,0x1,0x4,0x1,0x7,0x3,0x3};
 const uint8_t backColors[] = {0x0,0x7,0x0,0x6,0x7,0x0,0x4,0x4};
 
-char * versao = "1.0.00";
+char * versao = "2.0.00";
 char * screenMode = "640x400";
 int baudrate = serial0->getBaud() ;
 char * uartConfig = "8N1";
@@ -67,9 +67,11 @@ void setup()
 {
   Serial.begin(115200);
 	//initializing vga at the specified pins
-	vga.init(vga.MODE640x350, redPin, greenPin, bluePin, hsyncPin, vsyncPin);
-//	vga.init(vga.MODE320x200, redPin, greenPin, bluePin, hsyncPin, vsyncPin);
-
+  if ( memcpy(screenMode,"640x400",7 ) ){
+	  vga.init(vga.MODE640x350, redPin, greenPin, bluePin, hsyncPin, vsyncPin);
+  }else if ( memcpy(screenMode,"320x200",7 ) ){
+    vga.init(vga.MODE320x200, redPin, greenPin, bluePin, hsyncPin, vsyncPin);
+  }
   //vga.setResolution(640,  200);
 	//selecting the font
   vga.setFont(CodePage437_8x8);
